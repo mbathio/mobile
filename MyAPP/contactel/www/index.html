@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
+    <meta name="color-scheme" content="light dark">
+    <link rel="stylesheet" href="css/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>Contactel</title>
+</head>
+<body>
+    <header>
+        <h1>Contactel</h1>
+        <div class="search-bar">
+            <input type="text" id="searchInput" placeholder="Rechercher un contact...">
+            <button id="searchBtn"><i class="fas fa-search"></i></button>
+        </div>
+    </header>
+    
+    <button id="addContactBtn" class="add-contact">
+        <i class="fas fa-plus"></i> Ajouter un contact
+    </button>
+    
+    <div class="alphabet-index" id="alphabetIndex">
+        <!-- Les lettres seront générées dynamiquement -->
+    </div>
+    
+    <ul class="contact-list" id="contactList">
+        <!-- Les contacts seront générés dynamiquement -->
+    </ul>
+    
+    <!-- Modal pour ajouter/modifier un contact -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Ajouter un contact</h2>
+                <span class="close-modal" id="closeModal">&times;</span>
+            </div>
+            <form id="contactForm">
+                <input type="hidden" id="contactId">
+                <div class="form-group">
+                    <label for="nom">Nom</label>
+                    <input type="text" id="nom" placeholder="Nom du contact" required>
+                </div>
+                <div class="form-group">
+                    <label for="prenom">Prénom</label>
+                    <input type="text" id="prenom" placeholder="Prénom du contact" required>
+                </div>
+                <div class="form-group">
+                    <label for="telephone">Téléphone</label>
+                    <input type="tel" id="telephone" placeholder="Numéro de téléphone" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Adresse email">
+                </div>
+                <div class="form-actions">
+                    <button type="button" id="cancelBtn" class="btn-cancel">Annuler</button>
+                    <button type="submit" class="btn-save">Enregistrer</button>
+                </div>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal de confirmation de suppression -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirmation</h2>
+                <span class="close-modal" id="closeDeleteModal">&times;</span>
+            </div>
+            <p>Êtes-vous sûr de vouloir supprimer ce contact ?</p>
+            <div class="form-actions">
+                <button type="button" id="cancelDeleteBtn" class="btn-cancel">Annuler</button>
+                <button type="button" id="confirmDeleteBtn" class="btn-save">Supprimer</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="cordova.js"></script>
+    <script src="js/index.js"></script>
+</body>
+</html>

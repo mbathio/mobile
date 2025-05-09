@@ -16,76 +16,195 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-* {
-    -webkit-tap-highlight-color: rgba(0,0,0,0); /* make transparent link selection, adjust last value opacity 0 to 1.0 */
+ * {
+    -webkit-tap-highlight-color: rgba(0,0,0,0);
+    box-sizing: border-box;
 }
 
 body {
-    -webkit-touch-callout: none;                /* prevent callout to copy image, etc when tap to hold */
-    -webkit-text-size-adjust: none;             /* prevent webkit from resizing text to fit */
-    -webkit-user-select: none;                  /* prevent copy paste, to allow, change 'none' to 'text' */
-    background-color:#E4E4E4;
-    background-image:linear-gradient(to bottom, #A7A7A7 0%, #E4E4E4 51%);
+    -webkit-touch-callout: none;
+    -webkit-text-size-adjust: none;
+    -webkit-user-select: none;
+    background-color: #f5f5f5;
     font-family: system-ui, -apple-system, -apple-system-font, 'Segoe UI', 'Roboto', sans-serif;
-    font-size:12px;
-    height:100vh;
-    margin:0px;
-    padding:0px;
-    /* Padding to avoid the "unsafe" areas behind notches in the screen */
+    font-size: 16px;
+    height: 100vh;
+    margin: 0px;
+    padding: 0px;
     padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px);
-    text-transform:uppercase;
-    width:100%;
+    width: 100%;
 }
 
-/* Portrait layout (default) */
-.app {
-    background:url(../img/logo.png) no-repeat center top; /* 170px x 200px */
-    position:absolute;             /* position in the center of the screen */
-    left:50%;
-    top:50%;
-    height:50px;                   /* text area height */
-    width:225px;                   /* text area width */
-    text-align:center;
-    padding:180px 0px 0px 0px;     /* image height is 200px (bottom 20px are overlapped with text) */
-    margin:-115px 0px 0px -112px;  /* offset vertical: half of image height and text area height */
-                                   /* offset horizontal: half of text area width */
+.container {
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 20px;
 }
 
-/* Landscape layout (with min-width) */
-@media screen and (min-aspect-ratio: 1/1) and (min-width:400px) {
-    .app {
-        background-position:left center;
-        padding:75px 0px 75px 170px;  /* padding-top + padding-bottom + text area = image height */
-        margin:-90px 0px 0px -198px;  /* offset vertical: half of image height */
-                                      /* offset horizontal: half of image width and text area width */
+header {
+    text-align: center;
+    margin-bottom: 30px;
+    padding: 20px 0;
+    background-color: #4B946A;
+    color: white;
+    border-radius: 8px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 32px;
+    font-weight: bold;
+}
+
+header p {
+    margin-top: 10px;
+    font-size: 18px;
+    text-transform: none;
+}
+
+.todo-form {
+    display: flex;
+    margin-bottom: 30px;
+}
+
+#task-input {
+    flex: 1;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px 0 0 4px;
+    font-size: 16px;
+}
+
+#add-task {
+    padding: 12px 20px;
+    background-color: #4B946A;
+    color: white;
+    border: none;
+    border-radius: 0 4px 4px 0;
+    cursor: pointer;
+    font-size: 16px;
+}
+
+#add-task:hover {
+    background-color: #3a7554;
+}
+
+.todo-lists {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+@media (min-width: 768px) {
+    .todo-lists {
+        flex-direction: row;
+    }
+    
+    .pending-tasks, .completed-tasks {
+        flex: 1;
     }
 }
 
-h1 {
-    font-size:24px;
-    font-weight:normal;
-    margin:0px;
-    overflow:visible;
-    padding:0px;
-    text-align:center;
+.pending-tasks, .completed-tasks {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    padding: 20px;
+}
+
+h2 {
+    margin-top: 0;
+    font-size: 20px;
+    color: #333;
+    border-bottom: 2px solid #eee;
+    padding-bottom: 10px;
+    text-transform: none;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+}
+
+li {
+    padding: 12px 15px;
+    border-bottom: 1px solid #f2f2f2;
+    display: flex;
+    align-items: center;
+    text-transform: none;
+}
+
+li:last-child {
+    border-bottom: none;
+}
+
+.task-text {
+    flex: 1;
+    font-size: 16px;
+}
+
+.task-buttons {
+    display: flex;
+    gap: 10px;
+}
+
+.complete-btn, .delete-btn, .restore-btn {
+    padding: 6px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.complete-btn {
+    background-color: #4B946A;
+    color: white;
+}
+
+.delete-btn {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.restore-btn {
+    background-color: #3498db;
+    color: white;
+}
+
+.completed .task-text {
+    text-decoration: line-through;
+    color: #888;
+}
+
+/* Device ready indicator (positioning it at the bottom) */
+#deviceready {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: auto;
+    padding: 10px 20px;
+    margin: 0;
+    text-align: center;
 }
 
 .event {
-    border-radius:4px;
-    color:#FFFFFF;
-    font-size:12px;
-    margin:0px 30px;
-    padding:2px 0px;
+    border-radius: 4px;
+    color: #FFFFFF;
+    font-size: 12px;
+    margin: 0;
+    padding: 2px 10px;
 }
 
 .event.listening {
-    background-color:#333333;
-    display:block;
+    background-color: #333333;
+    display: block;
 }
 
 .event.received {
-    background-color:#4B946A;
-    display:none;
+    background-color: #4B946A;
+    display: none;
 }
 
 #deviceready.ready .event.listening { display: none; }
@@ -98,13 +217,33 @@ h1 {
 }
 
 .blink {
-    animation:fade 3000ms infinite;
-    -webkit-animation:fade 3000ms infinite;
+    animation: fade 3000ms infinite;
+    -webkit-animation: fade 3000ms infinite;
 }
-
 
 @media screen and (prefers-color-scheme: dark) {
     body {
-        background-image:linear-gradient(to bottom, #585858 0%, #1B1B1B 51%);
+        background-color: #222;
+        color: #f5f5f5;
+    }
+    
+    .pending-tasks, .completed-tasks {
+        background-color: #333;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+    }
+    
+    h2 {
+        color: #f5f5f5;
+        border-bottom: 2px solid #444;
+    }
+    
+    li {
+        border-bottom: 1px solid #444;
+    }
+    
+    #task-input {
+        background-color: #444;
+        border-color: #555;
+        color: #f5f5f5;
     }
 }

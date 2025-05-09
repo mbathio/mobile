@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='utf-8'?>
+<name>Contactel</name>
+    <description>Application de gestion de contacts</description>
+    <author email="dev@cordova.apache.org" href="https://cordova.apache.org">
+        Apache Cordova Team
+    </author>
+    <content src="index.html" />
+    <allow-intent href="http://*/*" />
+    <allow-intent href="https://*/*" />
+    <allow-intent href="tel:*" />
+    <allow-intent href="sms:*" />
+    <allow-intent href="mailto:*" />
+</widget>
