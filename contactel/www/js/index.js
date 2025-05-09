@@ -1,13 +1,24 @@
+// Attendre que Cordova soit complètement chargé
 document.addEventListener('deviceready', onDeviceReady, false);
 
 // État global de l'application
 const app = {
     contacts: [],
-    currentContactId: null
+    currentContactId: null,
+    isReady: false
 };
 
+// Initialisation après le chargement de Cordova
 function onDeviceReady() {
     console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
+    
+    // Marquer l'application comme prête
+    app.isReady = true;
+    
+    // Ajouter les écouteurs d'événements pour la plateforme mobile
+    document.addEventListener('pause', onPause, false);
+    document.addEventListener('resume', onResume, false);
+    document.addEventListener('backbutton', onBackButton, false);
     
     // Charger les contacts depuis le stockage local
     loadContacts();
@@ -17,6 +28,44 @@ function onDeviceReady() {
     
     // Générer l'index alphabétique
     generateAlphabetIndex();
+}
+
+// Gérer l'événement pause (application en arrière-plan)
+function onPause() {
+    console.log('Application mise en pause');
+    // Sauvegarder l'état si nécessaire
+    saveContacts();
+}
+
+// Gérer l'événement resume (retour au premier plan)
+function onResume() {
+    console.log('Application reprise');
+    // Rafraîchir les données si nécessaire
+    loadContacts();
+}
+
+// Gérer le bouton retour sur Android
+function onBackButton(e) {
+    // Si une modal est ouverte, la fermer au lieu de quitter l'application
+    if (document.getElementById('contactModal').style.display === 'block') {
+        closeModal('contactModal');
+        e.preventDefault();
+        return false;
+    }
+    
+    if (document.getElementById('deleteModal').style.display === 'block') {
+        closeModal('deleteModal');
+        e.preventDefault();
+        return false;
+    }
+    
+    // Sinon, confirmer la sortie de l'application
+    if (confirm('Voulez-vous quitter l\'application ?')) {
+        navigator.app.exitApp();
+    } else {
+        e.preventDefault();
+        return false;
+    }
 }
 
 // Charger les contacts depuis le stockage local
@@ -128,6 +177,15 @@ function initEventListeners() {
     // Recherche
     document.getElementById('searchBtn').addEventListener('click', handleSearch);
     document.getElementById('searchInput').addEventListener('input', handleSearch);
+
+    // Utilisation de FastClick pour éliminer le délai de 300ms sur les appareils mobiles
+    if ('addEventListener' in document) {
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof FastClick !== 'undefined') {
+                FastClick.attach(document.body);
+            }
+        }, false);
+    }
 }
 
 // Générer l'index alphabétique
@@ -211,7 +269,16 @@ function handleCall(event) {
     const contact = app.contacts.find(c => c.id === contactId);
     
     if (contact) {
-        window.location.href = `tel:${contact.telephone}`;
+        // Utiliser le plugin cordova pour appeler (plus fiable que l'URL tel:)
+        if (app.isReady && typeof navigator.tel !== 'undefined' && navigator.tel.dial) {
+            navigator.tel.dial(contact.telephone, 
+                function() { console.log('Appel réussi'); },
+                function() { console.log('Échec de l\'appel'); }
+            );
+        } else {
+            // Fallback sur la méthode standard
+            window.location.href = `tel:${contact.telephone}`;
+        }
     }
 }
 
@@ -273,12 +340,32 @@ function handleSearch() {
     displayContacts(filteredContacts);
 }
 
-// Ouvrir une modal
+// Ouvrir une modal avec animation
 function openModal(modalId) {
-    document.getElementById(modalId).style.display = 'block';
+    const modal = document.getElementById(modalId);
+    modal.style.display = 'block';
+    
+    // Animation facultative
+    setTimeout(() => {
+        modal.querySelector('.modal-content').style.opacity = '1';
+        modal.querySelector('.modal-content').style.transform = 'translateY(0)';
+    }, 10);
 }
 
-// Fermer une modal
+// Fermer une modal avec animation
 function closeModal(modalId) {
-    document.getElementById(modalId).style.display = 'none';
+    const modal = document.getElementById(modalId);
+    
+    // Animation de fermeture
+    const content = modal.querySelector('.modal-content');
+    content.style.opacity = '0';
+    content.style.transform = 'translateY(20px)';
+    
+    // Attendre la fin de l'animation avant de cacher la modal
+    setTimeout(() => {
+        modal.style.display = 'none';
+        // Réinitialiser les styles pour la prochaine ouverture
+        content.style.opacity = '';
+        content.style.transform = '';
+    }, 300);
 }
