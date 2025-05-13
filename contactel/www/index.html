@@ -25,84 +25,13 @@
 
         <div data-role="content">
             <div class="ui-input-search ui-body-inherit ui-corner-all ui-shadow-inset">
-                <input type="search" id="search-input" placeholder="Search" data-enhanced="true">
+                <input type="search" id="search-input" placeholder="Rechercher" data-enhanced="true">
                 <a href="#" class="ui-input-clear ui-btn ui-icon-delete ui-btn-icon-notext ui-corner-all"></a>
             </div>
             
             <!-- Liste des contacts avec sections alphabétiques -->
             <ul id="contact-list" data-role="listview">
-                <li class="section-header">D</li>
-                <li>
-                    <a href="#details-page" class="contact-item" data-id="diana">
-                        <div class="contact-info">
-                            <h2>d i a n a</h2>
-                            <span class="contact-emoji">🪐</span>
-                        </div>
-                    </a>
-                </li>
-                
-                <li class="section-header">E</li>
-                <li>
-                    <a href="#details-page" class="contact-item" data-id="elizabeth">
-                        <div class="contact-info">
-                            <h2>e l i z a b e t h</h2>
-                            <span class="contact-emoji">🦞</span>
-                        </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="#details-page" class="contact-item" data-id="emily">
-                        <div class="contact-info">
-                            <h2>e m i l y</h2>
-                            <span class="contact-emoji">🦋</span>
-                        </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="#details-page" class="contact-item" data-id="erin">
-                        <div class="contact-info">
-                            <h2>e r i n</h2>
-                            <span class="contact-emoji">🌻</span>
-                        </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="#details-page" class="contact-item" data-id="evan">
-                        <div class="contact-info">
-                            <h2>e v a n</h2>
-                            <span class="contact-emoji">🎸</span>
-                        </div>
-                    </a>
-                </li>
-                
-                <li class="section-header">F</li>
-                <li>
-                    <a href="#details-page" class="contact-item" data-id="faith">
-                        <div class="contact-info">
-                            <h2>f a i t h</h2>
-                            <span class="contact-emoji">🥥</span>
-                        </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="#details-page" class="contact-item" data-id="finley">
-                        <div class="contact-info">
-                            <h2>f i n l e y</h2>
-                            <span class="contact-emoji">💥</span>
-                        </div>
-                    </a>
-                </li>
-                <li>
-                    <a href="#details-page" class="contact-item" data-id="freya">
-                        <div class="contact-info">
-                            <h2>f r e y a</h2>
-                            <span class="contact-emoji">🍒</span>
-                        </div>
-                    </a>
-                </li>
-                
-                <li class="section-header">G</li>
-                <!-- Ajoutez d'autres contacts ici -->
+                <!-- Contenu généré dynamiquement -->
             </ul>
             
             <!-- Index alphabétique -->
@@ -143,11 +72,11 @@
                 <ul>
                     <li><a href="#">
                         <span class="nav-icon">⭐</span>
-                        Favorites
+                        Favoris
                     </a></li>
                     <li><a href="#">
                         <span class="nav-icon">🕒</span>
-                        Recents
+                        Récents
                     </a></li>
                     <li><a href="#" class="ui-btn-active">
                         <span class="nav-icon">👤</span>
@@ -155,19 +84,18 @@
                     </a></li>
                     <li><a href="#">
                         <span class="nav-icon">🔢</span>
-                        Keypad
+                        Clavier
                     </a></li>
                     <li><a href="#">
                         <span class="nav-icon">🔊</span>
-                        Voicemail
+                        Messagerie
                     </a></li>
                 </ul>
             </div>
         </div>
     </div>
 
-    <!-- Autres pages (détails, ajout, modification) -->
-    <!-- Page de détails -->
+    <!-- Page de détails du contact -->
     <div data-role="page" id="details-page">
         <div data-role="header">
             <a href="#home" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Retour</a>
@@ -177,23 +105,14 @@
         <div data-role="content" id="contact-details">
             <!-- Le contenu sera rempli dynamiquement -->
         </div>
-        <div data-role="footer" data-position="fixed">
-            <div data-role="navbar">
-                <ul>
-                    <li><a href="#" id="call-btn" class="ui-btn ui-icon-phone ui-btn-icon-top">Call</a></li>
-                    <li><a href="#" id="sms-btn" class="ui-btn ui-icon-comment ui-btn-icon-top">Message</a></li>
-                    <li><a href="#" id="email-btn" class="ui-btn ui-icon-mail ui-btn-icon-top">Mail</a></li>
-                </ul>
-            </div>
-        </div>
     </div>
 
-    <!-- Page d'ajout -->
+    <!-- Page d'ajout d'un contact -->
     <div data-role="page" id="add-page">
         <div data-role="header">
-            <a href="#home" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Cancel</a>
+            <a href="#home" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Annuler</a>
             <h1>Nouveau contact</h1>
-            <a href="#" id="save-new-btn" class="ui-btn ui-btn-right">Done</a>
+            <a href="#" id="save-new-btn" class="ui-btn ui-btn-right">Terminé</a>
         </div>
         <div data-role="content">
             <form id="add-form">
@@ -201,7 +120,7 @@
                     <div class="selected-emoji" id="selected-emoji">
                         <span>👤</span>
                     </div>
-                    <div class="emoji-label">add photo</div>
+                    <div class="emoji-label">Ajouter photo</div>
                 </div>
                 
                 <div class="ui-field-contain">
@@ -251,9 +170,9 @@
     <!-- Page de modification -->
     <div data-role="page" id="edit-page">
         <div data-role="header">
-            <a href="#details-page" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Cancel</a>
+            <a href="#details-page" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Annuler</a>
             <h1>Modifier</h1>
-            <a href="#" id="save-edit-btn" class="ui-btn ui-btn-right">Done</a>
+            <a href="#" id="save-edit-btn" class="ui-btn ui-btn-right">Terminé</a>
         </div>
         <div data-role="content">
             <form id="edit-form">
@@ -261,7 +180,7 @@
                     <div class="selected-emoji" id="edit-selected-emoji">
                         <span>👤</span>
                     </div>
-                    <div class="emoji-label">edit photo</div>
+                    <div class="emoji-label">Modifier photo</div>
                 </div>
                 
                 <div class="ui-field-contain">
