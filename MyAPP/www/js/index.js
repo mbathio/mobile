@@ -24,27 +24,65 @@ function calculerIMC() {
     }
 
     const imc = poids / (taille * taille);
-    let interpretation = '';
-    let couleur = '';
+    let statut = '';
+    let classeStatut = '';
+    let pointerPosition = 0;
 
     if (imc < 18.5) {
-        interpretation = 'Insuffisance pondérale';
-        couleur = '#2196F3';
+        statut = 'Insuffisance';
+        classeStatut = 'underweight';
+        pointerPosition = (imc / 18.5) * 25; // Position relative pour la catégorie insuffisance
     } else if (imc < 25) {
-        interpretation = 'Poids normal';
-        couleur = '#4CAF50';
+        statut = 'Normal';
+        classeStatut = 'normal';
+        pointerPosition = 25 + ((imc - 18.5) / 6.5) * 25; // Position relative pour la catégorie normale
     } else if (imc < 30) {
-        interpretation = 'Surpoids';
-        couleur = '#FFC107';
+        statut = 'Surpoids';
+        classeStatut = 'overweight';
+        pointerPosition = 50 + ((imc - 25) / 5) * 25; // Position relative pour la catégorie surpoids
     } else {
-        interpretation = 'Obésité';
-        couleur = '#F44336';
+        statut = 'Obésité';
+        classeStatut = 'obese';
+        pointerPosition = 75 + Math.min(((imc - 30) / 5) * 25, 25); // Position relative pour la catégorie obésité
     }
 
+    // Limiter la position du pointeur entre 0 et 100%
+    pointerPosition = Math.max(0, Math.min(pointerPosition, 100));
+
     resultatDiv.innerHTML = `
-        <div style="background-color: ${couleur}20; padding: 15px; border-radius: 4px;">
-            <p>Votre IMC est : <strong>${imc.toFixed(1)}</strong></p>
-            <p>Interprétation : <strong>${interpretation}</strong></p>
+        <div class="result-title">Votre IMC est...</div>
+        <div class="bmi-value">${imc.toFixed(1)}</div>
+        <div class="status ${classeStatut}">${statut}</div>
+        
+        <div class="bmi-scale">
+            <div class="bmi-pointer" style="left: ${pointerPosition}%;"></div>
         </div>
+        
+        <div class="bmi-categories">
+            <div class="category">
+                <div class="category-label">Insuffisance</div>
+                <div class="category-range">&lt;18.5</div>
+            </div>
+            <div class="category">
+                <div class="category-label">Normal</div>
+                <div class="category-range">18.5-24.9</div>
+            </div>
+            <div class="category">
+                <div class="category-label">Surpoids</div>
+                <div class="category-range">25-29.9</div>
+            </div>
+            <div class="category">
+                <div class="category-label">Obésité</div>
+                <div class="category-range">&gt;30</div>
+            </div>
+        </div>
+        
+        <button class="btn-save">SAVE</button>
     `;
+    
+    // Ajouter l'événement pour le bouton Save
+    resultatDiv.querySelector('.btn-save').addEventListener('click', function() {
+        // Ici, vous pourriez implémenter la fonctionnalité de sauvegarde
+        alert('IMC sauvegardé: ' + imc.toFixed(1));
+    });
 }
