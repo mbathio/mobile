@@ -130,8 +130,8 @@ function createDemoContacts() {
             prenom: 'Alberto',
             telephone: '+39 351 5289817',
             email: 'alberto@example.com',
-            type: 'cellulare',
-            pays: 'Italia'
+            type: 'mobile',
+            pays: 'France'
         },
         {
             id: '2',
@@ -139,17 +139,17 @@ function createDemoContacts() {
             prenom: '',
             telephone: '+39 351 1234567',
             email: 'kalpi@example.com',
-            type: 'cellulare',
-            pays: 'Italia'
+            type: 'mobile',
+            pays: 'France'
         },
         {
             id: '3',
             nom: 'Kalpi',
-            prenom: 'Mamma',
+            prenom: 'Maman',
             telephone: '+39 351 7654321',
-            email: 'mamma.kalpi@example.com',
-            type: 'cellulare',
-            pays: 'Italia'
+            email: 'maman.kalpi@example.com',
+            type: 'mobile',
+            pays: 'France'
         },
         {
             id: '4',
@@ -157,8 +157,8 @@ function createDemoContacts() {
             prenom: 'Brini',
             telephone: '+39 351 9876543',
             email: 'brini.mauro@example.com',
-            type: 'cellulare',
-            pays: 'Italia'
+            type: 'mobile',
+            pays: 'France'
         },
         {
             id: '5',
@@ -166,17 +166,17 @@ function createDemoContacts() {
             prenom: 'Cervo',
             telephone: '+39 351 3456789',
             email: 'cervo.enrico@example.com',
-            type: 'cellulare',
-            pays: 'Italia'
+            type: 'mobile',
+            pays: 'France'
         },
         {
             id: '6',
-            nom: 'Clf Pulizie',
+            nom: 'Clf Nettoyage',
             prenom: 'Elida',
             telephone: '+39 351 8765432',
-            email: 'elida@clfpulizie.it',
-            type: 'telefono',
-            pays: 'Italia'
+            email: 'elida@clfnettoyage.fr',
+            type: 'téléphone',
+            pays: 'France'
         },
         {
             id: '7',
@@ -184,8 +184,8 @@ function createDemoContacts() {
             prenom: '',
             telephone: '+39 0437 950437',
             email: '',
-            type: 'sconosciuto',
-            pays: 'Belluno, Veneto'
+            type: 'inconnu',
+            pays: 'Paris, France'
         },
         {
             id: '8',
@@ -193,8 +193,8 @@ function createDemoContacts() {
             prenom: '',
             telephone: '347 4634881',
             email: '',
-            type: 'sconosciuto',
-            pays: 'Italia'
+            type: 'inconnu',
+            pays: 'France'
         }
     ];
     saveContacts();
@@ -244,8 +244,8 @@ function createDemoRecentCalls() {
         {
             id: '3',
             contactId: null,
-            telephone: 'Numero sconosciuto',
-            type: 'sconosciuto',
+            telephone: 'Numéro inconnu',
+            type: 'inconnu',
             date: yesterday,
             duration: '00:00',
             status: 'manqué',
@@ -254,8 +254,8 @@ function createDemoRecentCalls() {
         {
             id: '4',
             contactId: null,
-            telephone: 'Numero sconosciuto',
-            type: 'sconosciuto',
+            telephone: 'Numéro inconnu',
+            type: 'inconnu',
             date: yesterday,
             duration: '00:00',
             status: 'manqué',
@@ -272,7 +272,7 @@ function createDemoRecentCalls() {
         },
         {
             id: '6',
-            contactId: '6', // Elida Clf Pulizie
+            contactId: '6', // Elida Clf Nettoyage
             date: yesterday,
             duration: '03:15',
             type: 'sortant',
@@ -290,7 +290,7 @@ function createDemoRecentCalls() {
         },
         {
             id: '8',
-            contactId: '3', // Mamma Kalpi
+            contactId: '3', // Maman Kalpi
             date: yesterday,
             duration: '05:11',
             type: 'entrant',
@@ -349,9 +349,9 @@ function formatDate(date) {
     const inputDay = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
     
     if (inputDay.getTime() === today.getTime()) {
-        return 'oggi';
+        return 'aujourd\'hui';
     } else if (inputDay.getTime() === yesterday.getTime()) {
-        return 'ieri';
+        return 'hier';
     } else {
         const day = inputDate.getDate().toString().padStart(2, '0');
         const month = (inputDate.getMonth() + 1).toString().padStart(2, '0');
@@ -374,7 +374,7 @@ function displayContacts(filteredContacts = null) {
     contactList.innerHTML = '';
     
     // Changer le titre et les boutons selon la vue
-    document.querySelector('.nav-bar .back-button').innerHTML = '<i class="fas fa-chevron-left"></i> Recenti';
+    document.querySelector('.nav-bar .back-button').innerHTML = '<i class="fas fa-chevron-left"></i> Récents';
     document.querySelector('.nav-bar .back-button').style.visibility = 'visible';
     document.querySelector('.nav-bar .actions-container').innerHTML = `
         <button id="addContactBtn" class="add-button">
@@ -446,8 +446,8 @@ function displayContacts(filteredContacts = null) {
                 displayName = contact.telephone;
             }
             
-            // Type d'appareil (cellulare, telefono, etc.)
-            const deviceType = contact.type || 'cellulare';
+            // Type d'appareil (mobile, téléphone, etc.)
+            const deviceType = contact.type || 'mobile';
             
             contactItem.innerHTML = `
                 <div class="contact-info">
@@ -489,7 +489,7 @@ function displayRecentCalls(filteredCalls = null) {
     document.querySelector('.nav-bar .back-button').style.visibility = 'hidden';
     document.querySelector('.nav-bar .actions-container').innerHTML = `
         <button id="editCallsBtn" class="edit-button">
-            Modifica
+            Modifier
         </button>
     `;
     document.getElementById('editCallsBtn').addEventListener('click', () => {
@@ -497,12 +497,12 @@ function displayRecentCalls(filteredCalls = null) {
         alert('Fonction d\'édition non implémentée');
     });
     
-    // Ajouter les onglets de filtre (Tutte, Perse)
+    // Ajouter les onglets de filtre (Tous, Manqués)
     const filterTabs = document.createElement('div');
     filterTabs.className = 'filter-tabs';
     filterTabs.innerHTML = `
-        <button class="filter-tab active">Tutte</button>
-        <button class="filter-tab">Perse</button>
+        <button class="filter-tab active">Tous</button>
+        <button class="filter-tab">Manqués</button>
     `;
     contactList.parentNode.insertBefore(filterTabs, contactList);
     
@@ -513,7 +513,7 @@ function displayRecentCalls(filteredCalls = null) {
             e.target.classList.add('active');
             
             // Filtrer les appels selon l'onglet
-            if (e.target.textContent === 'Perse') {
+            if (e.target.textContent === 'Manqués') {
                 const missedCalls = app.recentCalls.filter(call => call.status === 'manqué');
                 displayRecentCalls(missedCalls);
             } else {
@@ -539,8 +539,8 @@ function displayRecentCalls(filteredCalls = null) {
         groupedCalls[dateGroup].push(call);
     });
     
-    // Trier les clés de date (oggi, ieri, dates)
-    const sortOrder = { 'oggi': 0, 'ieri': 1 };
+    // Trier les clés de date (aujourd'hui, hier, dates)
+    const sortOrder = { 'aujourd\'hui': 0, 'hier': 1 };
     const sortedKeys = Object.keys(groupedCalls).sort((a, b) => {
         if (a in sortOrder && b in sortOrder) {
             return sortOrder[a] - sortOrder[b];
@@ -591,12 +591,12 @@ function displayRecentCalls(filteredCalls = null) {
                     } else {
                         displayName = contact.telephone;
                     }
-                    displayType = contact.type || 'cellulare';
+                    displayType = contact.type || 'mobile';
                     phoneNumber = contact.telephone;
                 }
             } else {
-                displayName = call.telephone || 'Numero sconosciuto';
-                displayType = 'sconosciuto';
+                displayName = call.telephone || 'Numéro inconnu';
+                displayType = 'inconnu';
                 phoneNumber = call.telephone || '';
             }
             
@@ -644,8 +644,8 @@ function displayRecentCalls(filteredCalls = null) {
                         prenom: '',
                         telephone: phoneNumber,
                         email: '',
-                        type: 'sconosciuto',
-                        pays: call.pays || 'Italia'
+                        type: 'inconnu',
+                        pays: call.pays || 'France'
                     };
                     showContactDetailsFromObject(tempContact);
                 }
@@ -690,11 +690,11 @@ function showContactDetailsFromObject(contact) {
         newCountryElement.className = 'data-item';
         newCountryElement.innerHTML = `
             <div class="data-label">Pays</div>
-            <div class="data-value">${contact.pays || 'Italia'}</div>
+            <div class="data-value">${contact.pays || 'France'}</div>
         `;
         document.querySelector('.data-section').appendChild(newCountryElement);
     } else {
-        countryElement.querySelector('.data-value').textContent = contact.pays || 'Italia';
+        countryElement.querySelector('.data-value').textContent = contact.pays || 'France';
     }
     
     // Ajouter l'email si disponible
@@ -809,4 +809,33 @@ function initEventListeners() {
     document.getElementById('backToListBtn').addEventListener('click', () => {
         document.getElementById('contactDetailView').style.display = 'none';
     });
+}
+
+// Fonctions manquantes à implémenter
+
+// Générer l'index alphabétique
+function generateAlphabetIndex() {
+    const alphabetIndex = document.getElementById('alphabetIndex');
+    alphabetIndex.innerHTML = '';
+    
+    // Créer les lettres de A à Z
+    for (let i = 65; i <= 90; i++) {
+        const letter = String.fromCharCode(i);
+        const letterElement = document.createElement('div');
+        letterElement.className = 'letter';
+        letterElement.textContent = letter;
+        
+        // Ajouter l'événement pour faire défiler jusqu'à la section correspondante
+        letterElement.addEventListener('click', () => {
+            const dividers = document.querySelectorAll('.divider');
+            dividers.forEach(divider => {
+                if (divider.textContent.toLowerCase().startsWith(letter.toLowerCase())) {
+                    divider.scrollIntoView({ behavior: 'smooth' });
+                    return;
+                }
+            });
+        });
+        
+        alphabetIndex.appendChild(letterElement);
+    }
 }
