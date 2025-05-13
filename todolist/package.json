@@ -26,5 +26,8 @@
       "cordova-plugin-statusbar": {},
       "cordova-plugin-splashscreen": {}
     }
+  },
+  "dependencies": {
+    "sn.esp.m2glsi.todolist": "file:"
   }
 }

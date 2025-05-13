@@ -1,710 +1,334 @@
-// Variable globale pour stocker le contact actuellement sélectionné
-let currentContact = null;
+// Fonction complémentaire à ajouter dans index.js après displayContactDetails()
 
-// Attendre que l'appareil soit prêt
-document.addEventListener('deviceready', onDeviceReady, false);
+// Ajouter les boutons d'action sur la page de détails
+function addActionButtons() {
+  if (!currentContact) return;
 
-// Fallback pour le développement dans le navigateur
-document.addEventListener('DOMContentLoaded', function() {
-    if (typeof cordova === 'undefined') {
-        onDeviceReady();
-    }
-});
-
-function onDeviceReady() {
-    console.log('Application ContactEl prête!');
-    
-    // Initialiser les contacts de démonstration s'ils n'existent pas
-    initDemoContacts();
-    
-    // Charger la liste des contacts
-    loadContactList();
-    
-    // Gérer la recherche
-    $('#search-input').on('input', function() {
-        const searchTerm = $(this).val().toLowerCase();
-        filterContacts(searchTerm);
-    });
-    
-    // Gestionnaires d'événements pour les formulaires
-    $('#add-form').on('submit', function(e) {
-        e.preventDefault();
-        addContact();
-    });
-    
-    $('#edit-form').on('submit', function(e) {
-        e.preventDefault();
-        updateContact();
-    });
-    
-    // Gestionnaire pour le bouton de suppression
-    $('#delete-btn').on('click', function() {
-        confirmAndDeleteContact();
-    });
-    
-    // Gestionnaire pour les boutons d'action
-    $('#call-btn').on('click', function() {
-        if (currentContact && currentContact.phone) {
-            window.location.href = 'tel:' + currentContact.phone;
-        }
-    });
-    
-    $('#sms-btn').on('click', function() {
-        if (currentContact && currentContact.phone) {
-            window.location.href = 'sms:' + currentContact.phone;
-        }
-    });
-    
-    $('#email-btn').on('click', function() {
-        if (currentContact && currentContact.email) {
-            window.location.href = 'mailto:' + currentContact.email;
-        }
-    });
-    
-    // Mise à jour de la prévisualisation des images de profil
-    $('#profile-select').on('change', function() {
-        updateProfilePreview('profile-preview', $(this).val());
-    });
-    
-    $('#edit-profile-select').on('change', function() {
-        updateProfilePreview('edit-profile-preview', $(this).val());
-    });
-    
-    // Événements pour gérer la navigation entre les pages
-    $(document).on('pagebeforeshow', '#details-page', function() {
-        if (currentContact) {
-            displayContactDetails();
-        }
-    });
-    
-    $(document).on('pagebeforeshow', '#edit-page', function() {
-        if (currentContact) {
-            populateEditForm();
-        }
-    });
-}
-
-// Initialiser les contacts de démonstration
-function initDemoContacts() {
-    if (!localStorage.getItem('contacts')) {
-        const demoContacts = [
-            {
-                id: generateId(),
-                name: 'Bachir Diallo',
-                phone: '70 123 45 67',
-                email: 'bachir.diallo@example.com',
-                address: 'Dakar, Sénégal',
-                photo: 'Bachir Diallo.png',
-                group: 'travail'
-            },
-            {
-                id: generateId(),
-                name: 'Nabou Gueye',
-                phone: '77 456 78 90',
-                email: 'nabou.gueye@example.com',
-                address: 'Thiès, Sénégal',
-                photo: 'Nabou Gueye.png',
-                group: 'famille'
-            },
-            {
-                id: generateId(),
-                name: 'Samba Sall',
-                phone: '76 234 56 78',
-                email: 'samba.sall@example.com',
-                address: 'Saint-Louis, Sénégal',
-                photo: 'Samba Sall.png',
-                group: 'amis'
-            },
-            {
-                id: generateId(),
-                name: 'Zahra Aidara',
-                phone: '78 567 89 01',
-                email: 'zahra.aidara@example.com',
-                address: 'Kaolack, Sénégal',
-                photo: 'zahra aidara.png',
-                group: 'travail'
-            }
-        ];
-        
-        localStorage.setItem('contacts', JSON.stringify(demoContacts));
-    }
-}
-
-// Charger et afficher la liste des contacts
-function loadContactList() {
-    const contacts = getContacts();
-    const $contactList = $('#contact-list');
-    
-    // Vider la liste
-    $contactList.empty();
-    
-    if (contacts.length === 0) {
-        $contactList.html('<li class="empty-list"><p>Aucun contact trouvé. Ajoutez votre premier contact!</p></li>');
-        return;
-    }
-    
-    // Trier les contacts par nom
-    contacts.sort((a, b) => a.name.localeCompare(b.name));
-    
-    // Ajouter chaque contact à la liste
-    contacts.forEach(contact => {
-        const $item = $(`
-            <li>
-                <a href="#details-page" class="contact-item" data-id="${contact.id}">
-                    <img src="img/${contact.photo || 'logo.png'}" alt="${contact.name}" class="contact-avatar">
-                    <div class="contact-info">
-                        <h2>${contact.name}</h2>
-                        <p>${contact.phone}</p>
-                        <span class="contact-group ${contact.group}">${contact.group}</span>
-                    </div>
+  // Vérifier si les boutons existent déjà
+  if ($("#contact-details .action-buttons").length === 0) {
+    const $actionButtons = $(`
+            <div class="action-buttons">
+                <a href="tel:${
+                  currentContact.phone
+                }" id="call-btn" class="action-btn">
+                    <div class="action-icon">📞</div>
+                    <span>Appeler</span>
                 </a>
-            </li>
+                <a href="sms:${
+                  currentContact.phone
+                }" id="sms-btn" class="action-btn">
+                    <div class="action-icon">✉️</div>
+                    <span>SMS</span>
+                </a>
+                <a href="${
+                  currentContact.email ? "mailto:" + currentContact.email : "#"
+                }" 
+                   id="email-btn" class="action-btn ${
+                     !currentContact.email ? "ui-state-disabled" : ""
+                   }">
+                    <div class="action-icon">📧</div>
+                    <span>Email</span>
+                </a>
+                <a href="#" id="share-btn" class="action-btn">
+                    <div class="action-icon">🔗</div>
+                    <span>Partager</span>
+                </a>
+            </div>
         `);
-        
-        $contactList.append($item);
+
+    $("#contact-details").append($actionButtons);
+
+    // Gestionnaire pour le bouton de partage
+    $("#share-btn").on("click", function (e) {
+      e.preventDefault();
+      shareContact();
     });
-    
-    // Rafraîchir la liste pour appliquer le style jQuery Mobile
-    if ($contactList.hasClass('ui-listview')) {
-        $contactList.listview('refresh');
+  } else {
+    // Mettre à jour les liens si les boutons existent déjà
+    $("#call-btn").attr("href", "tel:" + currentContact.phone);
+    $("#sms-btn").attr("href", "sms:" + currentContact.phone);
+
+    if (currentContact.email) {
+      $("#email-btn")
+        .attr("href", "mailto:" + currentContact.email)
+        .removeClass("ui-state-disabled");
+    } else {
+      $("#email-btn").attr("href", "#").addClass("ui-state-disabled");
     }
-    
-    // Gestionnaire d'événements pour la sélection d'un contact
-    $('.contact-item').on('click', function() {
-        const contactId = $(this).data('id');
-        currentContact = getContactById(contactId);
-    });
+  }
 }
 
-// Filtrer les contacts en fonction du terme de recherche
-function filterContacts(searchTerm) {
+// Fonction pour partager un contact
+function shareContact() {
+  if (!currentContact) return;
+
+  // Créer le texte à partager
+  const shareText = `Contact: ${currentContact.name}\nTéléphone: ${
+    currentContact.phone
+  }${currentContact.email ? "\nEmail: " + currentContact.email : ""}`;
+
+  // Vérifier si l'API Web Share est disponible
+  if (navigator.share) {
+    navigator
+      .share({
+        title: `Contact: ${currentContact.name}`,
+        text: shareText,
+      })
+      .then(() => console.log("Partage réussi"))
+      .catch((error) => {
+        console.log("Erreur lors du partage", error);
+        fallbackShare();
+      });
+  } else {
+    fallbackShare();
+  }
+}
+
+// Méthode de partage alternative
+function fallbackShare() {
+  if (!currentContact) return;
+
+  // Créer une carte de visite simple
+  const cardHtml = `
+        <div style="position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 9999; display: flex; justify-content: center; align-items: center;">
+            <div style="background: white; border-radius: 10px; padding: 20px; width: 80%; max-width: 350px; position: relative;">
+                <div style="position: absolute; top: 10px; right: 10px; font-size: 24px; cursor: pointer;" id="close-card">×</div>
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <div style="font-size: 48px; margin-bottom: 10px;">${
+                      currentContact.photo ? "📷" : "👤"
+                    }</div>
+                    <h2 style="margin: 0; font-size: 20px;">${
+                      currentContact.name
+                    }</h2>
+                    <div style="font-size: 14px; color: #666;">${
+                      currentContact.group
+                    }</div>
+                </div>
+                <div style="margin: 15px 0;">
+                    <div style="margin: 10px 0;">
+                        <div style="font-size: 12px; color: #999;">Téléphone</div>
+                        <div style="font-size: 16px;">${
+                          currentContact.phone
+                        }</div>
+                    </div>
+                    ${
+                      currentContact.email
+                        ? `
+                    <div style="margin: 10px 0;">
+                        <div style="font-size: 12px; color: #999;">Email</div>
+                        <div style="font-size: 16px;">${currentContact.email}</div>
+                    </div>
+                    `
+                        : ""
+                    }
+                </div>
+                <div style="margin-top: 20px; text-align: center;">
+                    <button id="copy-contact" style="background: #007aff; color: white; border: none; padding: 10px 15px; border-radius: 5px; font-size: 16px;">Copier les informations</button>
+                </div>
+            </div>
+        </div>
+    `;
+
+  // Ajouter la carte au DOM
+  $("body").append(cardHtml);
+
+  // Gestionnaire pour le bouton de fermeture
+  $("#close-card").on("click", function () {
+    $(this).closest("div").parent().remove();
+  });
+
+  // Gestionnaire pour le bouton de copie
+  $("#copy-contact").on("click", function () {
+    const shareText = `Contact: ${currentContact.name}\nTéléphone: ${
+      currentContact.phone
+    }${currentContact.email ? "\nEmail: " + currentContact.email : ""}`;
+
+    // Copier dans le presse-papier
+    const textarea = document.createElement("textarea");
+    textarea.value = shareText;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand("copy");
+    document.body.removeChild(textarea);
+
+    // Afficher un message
+    showToast("Informations copiées dans le presse-papier");
+
+    // Fermer la carte
+    $("#close-card").click();
+  });
+}
+
+// Fonction pour améliorer la recherche avec recherche en temps réel
+function enhanceSearch() {
+  // Styliser le champ de recherche
+  const $searchInput = $("#search-input");
+
+  // Ajouter une animation sur focus
+  $searchInput
+    .on("focus", function () {
+      $(this).closest(".ui-input-search").css({
+        "box-shadow": "0 0 0 2px #007aff",
+        transition: "box-shadow 0.2s ease-in-out",
+      });
+    })
+    .on("blur", function () {
+      $(this).closest(".ui-input-search").css("box-shadow", "none");
+    });
+
+  // Améliorer la recherche pour inclure la recherche phonétique
+  $searchInput.on("input", function () {
+    const searchTerm = $(this).val().toLowerCase();
+
+    // Si le terme de recherche est vide, afficher tous les contacts
+    if (!searchTerm) {
+      loadContactList();
+      return;
+    }
+
+    // Filtrer avec recherche améliorée
     const contacts = getContacts();
-    const $contactList = $('#contact-list');
-    
+    const $contactList = $("#contact-list");
+
     // Vider la liste
     $contactList.empty();
-    
-    // Filtrer les contacts
-    const filteredContacts = contacts.filter(contact => 
-        contact.name.toLowerCase().includes(searchTerm) || 
+
+    // Fonction pour calculer la similarité entre deux chaînes
+    function similarity(s1, s2) {
+      let longer = s1;
+      let shorter = s2;
+
+      if (s1.length < s2.length) {
+        longer = s2;
+        shorter = s1;
+      }
+
+      const longerLength = longer.length;
+      if (longerLength === 0) {
+        return 1.0;
+      }
+
+      return (
+        (longerLength - editDistance(longer, shorter)) /
+        parseFloat(longerLength)
+      );
+    }
+
+    // Algorithme de distance de Levenshtein
+    function editDistance(s1, s2) {
+      s1 = s1.toLowerCase();
+      s2 = s2.toLowerCase();
+
+      const costs = [];
+      for (let i = 0; i <= s1.length; i++) {
+        let lastValue = i;
+        for (let j = 0; j <= s2.length; j++) {
+          if (i === 0) {
+            costs[j] = j;
+          } else if (j > 0) {
+            let newValue = costs[j - 1];
+            if (s1.charAt(i - 1) !== s2.charAt(j - 1)) {
+              newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
+            }
+            costs[j - 1] = lastValue;
+            lastValue = newValue;
+          }
+        }
+        if (i > 0) {
+          costs[s2.length] = lastValue;
+        }
+      }
+      return costs[s2.length];
+    }
+
+    // Filtrer les contacts avec un seuil de similarité
+    const filteredContacts = contacts.filter((contact) => {
+      // Correspondance exacte dans le nom, téléphone ou email
+      if (
+        contact.name.toLowerCase().includes(searchTerm) ||
         contact.phone.includes(searchTerm) ||
         (contact.email && contact.email.toLowerCase().includes(searchTerm))
-    );
-    
+      ) {
+        return true;
+      }
+
+      // Correspondance approximative dans le nom
+      const nameSimilarity = similarity(searchTerm, contact.name.toLowerCase());
+      return nameSimilarity > 0.4; // seuil de similarité
+    });
+
+    // Trier par pertinence
+    filteredContacts.sort((a, b) => {
+      const aNameMatch = a.name.toLowerCase().includes(searchTerm);
+      const bNameMatch = b.name.toLowerCase().includes(searchTerm);
+
+      if (aNameMatch && !bNameMatch) return -1;
+      if (!aNameMatch && bNameMatch) return 1;
+
+      const aSimScore = similarity(searchTerm, a.name.toLowerCase());
+      const bSimScore = similarity(searchTerm, b.name.toLowerCase());
+
+      return bSimScore - aSimScore;
+    });
+
     if (filteredContacts.length === 0) {
-        $contactList.html('<li class="empty-list"><p>Aucun contact trouvé</p></li>');
-        return;
+      $contactList.html(
+        '<li class="empty-list"><p>Aucun contact trouvé</p></li>'
+      );
+      return;
     }
-    
+
     // Ajouter les contacts filtrés à la liste
-    filteredContacts.forEach(contact => {
-        const $item = $(`
-            <li>
-                <a href="#details-page" class="contact-item" data-id="${contact.id}">
-                    <img src="img/${contact.photo || 'logo.png'}" alt="${contact.name}" class="contact-avatar">
-                    <div class="contact-info">
-                        <h2>${contact.name}</h2>
-                        <p>${contact.phone}</p>
-                        <span class="contact-group ${contact.group}">${contact.group}</span>
-                    </div>
-                </a>
-            </li>
-        `);
-        
-        $contactList.append($item);
-    });
-    
-    // Rafraîchir la liste
-    if ($contactList.hasClass('ui-listview')) {
-        $contactList.listview('refresh');
-    }
-    
-    // Réattacher les gestionnaires d'événements
-    $('.contact-item').on('click', function() {
-        const contactId = $(this).data('id');
-        currentContact = getContactById(contactId);
-    });
-}
-
-// Afficher les détails d'un contact
-function displayContactDetails() {
-    if (!currentContact) return;
-    
-    const $detailsContainer = $('#contact-details');
-    
-    $detailsContainer.html(`
-        <img src="img/${currentContact.photo || 'logo.png'}" alt="${currentContact.name}" class="avatar">
-        <h2>${currentContact.name}</h2>
-        <span class="group-badge ${currentContact.group}">${currentContact.group}</span>
-        
-        <div class="info-card">
-            <div class="label">Téléphone</div>
-            <div class="value">${currentContact.phone}</div>
-        </div>
-        
-        <div class="info-card">
-            <div class="label">Email</div>
-            <div class="value">${currentContact.email || 'Non renseigné'}</div>
-        </div>
-        
-        <div class="info-card">
-            <div class="label">Adresse</div>
-            <div class="value">${currentContact.address || 'Non renseignée'}</div>
-        </div>
-    `);
-    
-    // Désactiver le bouton d'email si non disponible
-    if (!currentContact.email) {
-        $('#email-btn').addClass('ui-state-disabled');
-    } else {
-        $('#email-btn').removeClass('ui-state-disabled');
-    }
-}
-
-// Ajouter un nouveau contact
-function addContact() {
-    const newContact = {
-        id: generateId(),
-        name: $('#add-name').val().trim(),
-        phone: $('#add-phone').val().trim(),
-        email: $('#add-email').val().trim(),
-        address: $('#add-address').val().trim(),
-        photo: $('#profile-select').val(),
-        group: $('#add-group').val()
-    };
-    
-    // Valider les données
-    if (!newContact.name || !newContact.phone) {
-        alert('Veuillez remplir au moins le nom et le numéro de téléphone.');
-        return;
-    }
-    
-    // Ajouter le contact à la liste
-    const contacts = getContacts();
-    contacts.push(newContact);
-    saveContacts(contacts);
-    
-    // Réinitialiser le formulaire
-    $('#add-form')[0].reset();
-    
-    // Revenir à la page d'accueil et rafraîchir la liste
-    $.mobile.changePage('#home');
-    loadContactList();
-    
-    // Afficher un message
-    showToast('Contact ajouté avec succès');
-}
-
-// Mettre à jour un contact existant
-function updateContact() {
-    if (!currentContact) return;
-    
-    const updatedContact = {
-        id: currentContact.id,
-        name: $('#edit-name').val().trim(),
-        phone: $('#edit-phone').val().trim(),
-        email: $('#edit-email').val().trim(),
-        address: $('#edit-address').val().trim(),
-        photo: $('#edit-profile-select').val(),
-        group: $('#edit-group').val()
-    };
-    
-    // Valider les données
-    if (!updatedContact.name || !updatedContact.phone) {
-        alert('Veuillez remplir au moins le nom et le numéro de téléphone.');
-        return;
-    }
-    
-    // Mettre à jour le contact dans la liste
-    const contacts = getContacts();
-    const index = contacts.findIndex(c => c.id === currentContact.id);
-    
-    if (index !== -1) {
-        contacts[index] = updatedContact;
-        saveContacts(contacts);
-        
-        // Mettre à jour le contact actuel
-        currentContact = updatedContact;
-        
-        // Revenir à la page de détails et rafraîchir
-        $.mobile.changePage('#details-page');
-        
-        // Rafraîchir la liste des contacts
-        loadContactList();
-        
-        // Afficher un message
-        showToast('Contact mis à jour avec succès');
-    }
-}
-
-// Confirmer et supprimer un contact
-function confirmAndDeleteContact() {
-    if (!currentContact) return;
-    
-    if (confirm(`Êtes-vous sûr de vouloir supprimer ${currentContact.name} ?`)) {
-        // Supprimer le contact
-        const contacts = getContacts();
-        const updatedContacts = contacts.filter(c => c.id !== currentContact.id);
-        saveContacts(updatedContacts);
-        
-        // Revenir à la page d'accueil et rafraîchir la liste
-        $.mobile.changePage('#home');
-        loadContactList();
-        
-        // Réinitialiser le contact actuel
-        currentContact = null;
-        
-        // Afficher un message
-        showToast('Contact supprimé avec succès');
-    }
-}
-
-// Pré-remplir le formulaire de modification
-function populateEditForm() {
-    if (!currentContact) return;
-    
-    $('#edit-name').val(currentContact.name);
-    $('#edit-phone').val(currentContact.phone);
-    $('#edit-email').val(currentContact.email || '');
-    $('#edit-address').val(currentContact.address || '');
-    $('#edit-profile-select').val(currentContact.photo || 'logo.png').selectmenu('refresh');
-    $('#edit-group').val(currentContact.group).selectmenu('refresh');
-    
-    // Mettre à jour la prévisualisation de la photo
-    updateProfilePreview('edit-profile-preview', currentContact.photo || 'logo.png');
-}
-
-// Mettre à jour la prévisualisation de la photo de profil
-function updateProfilePreview(previewId, photoName) {
-    $(`#${previewId}`).attr('src', `img/${photoName}`);
-}
-
-// Fonctions utilitaires
-function getContacts() {
-    const contactsJson = localStorage.getItem('contacts');
-    return contactsJson ? JSON.parse(contactsJson) : [];
-}
-
-// Fonctions utilitaires (suite)
-function saveContacts(contacts) {
-    localStorage.setItem('contacts', JSON.stringify(contacts));
-}
-
-function getContactById(id) {
-    const contacts = getContacts();
-    return contacts.find(contact => contact.id === id);
-}
-
-function generateId() {
-    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
-}
-
-// Afficher un message toast
-function showToast(message) {
-    // Créer l'élément toast s'il n'existe pas déjà
-    if ($('#toast').length === 0) {
-        $('body').append('<div id="toast" class="toast"></div>');
-        
-        // Ajouter le style pour le toast
-        $('<style>')
-            .prop('type', 'text/css')
-            .html(`
-                .toast {
-                    position: fixed;
-                    bottom: 80px;
-                    left: 50%;
-                    transform: translateX(-50%);
-                    background-color: rgba(0, 0, 0, 0.8);
-                    color: white;
-                    padding: 12px 20px;
-                    border-radius: 25px;
-                    z-index: 9999;
-                    font-size: 16px;
-                    opacity: 0;
-                    transition: opacity 0.3s ease-in-out;
-                    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
-                    text-align: center;
-                    min-width: 200px;
-                    max-width: 80%;
-                }
-                .toast.visible {
-                    opacity: 1;
-                }
-            `)
-            .appendTo('head');
-    }
-    
-    // Afficher le toast
-    const $toast = $('#toast');
-    $toast.text(message).addClass('visible');
-    
-    // Masquer le toast après un délai
-    setTimeout(() => {
-        $toast.removeClass('visible');
-    }, 3000);
-}
-
-// Fonction pour afficher et masquer les groupes de lettres dans la liste de contacts
-function organizeContactsByInitial() {
-    const contacts = getContacts();
-    const $contactList = $('#contact-list');
-    
-    // Vider la liste
-    $contactList.empty();
-    
-    if (contacts.length === 0) {
-        $contactList.html('<li class="empty-list"><p>Aucun contact trouvé. Ajoutez votre premier contact!</p></li>');
-        return;
-    }
-    
-    // Trier les contacts par nom
-    contacts.sort((a, b) => a.name.localeCompare(b.name));
-    
-    // Regrouper les contacts par initiale
-    const groupedContacts = {};
-    
-    contacts.forEach(contact => {
-        const initial = contact.name.charAt(0).toUpperCase();
-        if (!groupedContacts[initial]) {
-            groupedContacts[initial] = [];
-        }
-        groupedContacts[initial].push(contact);
-    });
-    
-    // Ajouter chaque groupe à la liste
-    Object.keys(groupedContacts).sort().forEach(initial => {
-        // Ajouter l'en-tête de groupe
-        $contactList.append(`
-            <li data-role="list-divider" class="ui-li-divider">${initial}</li>
-        `);
-        
-        // Ajouter les contacts de ce groupe
-        groupedContacts[initial].forEach(contact => {
-            const $item = $(`
+    filteredContacts.forEach((contact) => {
+      const $item = $(`
                 <li>
-                    <a href="#details-page" class="contact-item" data-id="${contact.id}">
-                        <img src="img/${contact.photo || 'logo.png'}" alt="${contact.name}" class="contact-avatar">
+                    <a href="#details-page" class="contact-item" data-id="${
+                      contact.id
+                    }">
+                        <img src="img/${contact.photo || "logo.png"}" alt="${
+        contact.name
+      }" class="contact-avatar">
                         <div class="contact-info">
                             <h2>${contact.name}</h2>
                             <p>${contact.phone}</p>
-                            <span class="contact-group ${contact.group}">${contact.group}</span>
+                            <span class="contact-group ${contact.group}">${
+        contact.group
+      }</span>
                         </div>
                     </a>
                 </li>
             `);
-            
-            $contactList.append($item);
-        });
+
+      $contactList.append($item);
     });
-    
-    // Rafraîchir la liste pour appliquer le style jQuery Mobile
-    if ($contactList.hasClass('ui-listview')) {
-        $contactList.listview('refresh');
+
+    // Rafraîchir la liste
+    if ($contactList.hasClass("ui-listview")) {
+      $contactList.listview("refresh");
     }
-    
-    // Gestionnaire d'événements pour la sélection d'un contact
-    $('.contact-item').on('click', function() {
-        const contactId = $(this).data('id');
-        currentContact = getContactById(contactId);
+
+    // Réattacher les gestionnaires d'événements
+    $(".contact-item").on("click", function () {
+      const contactId = $(this).data("id");
+      currentContact = getContactById(contactId);
     });
+  });
 }
 
-// Fonction pour exporter les contacts (vCard format)
-function exportContacts() {
-    const contacts = getContacts();
-    let vcardContent = '';
-    
-    contacts.forEach(contact => {
-        vcardContent += 'BEGIN:VCARD\n';
-        vcardContent += 'VERSION:3.0\n';
-        vcardContent += `N:${contact.name};;;\n`;
-        vcardContent += `FN:${contact.name}\n`;
-        vcardContent += `TEL;TYPE=CELL:${contact.phone}\n`;
-        
-        if (contact.email) {
-            vcardContent += `EMAIL:${contact.email}\n`;
-        }
-        
-        if (contact.address) {
-            vcardContent += `ADR:;;${contact.address};;;;\n`;
-        }
-        
-        vcardContent += `CATEGORIES:${contact.group}\n`;
-        vcardContent += 'END:VCARD\n';
-    });
-    
-    // Créer un lien de téléchargement pour le fichier vCard
-    const blob = new Blob([vcardContent], { type: 'text/vcard' });
-    const url = URL.createObjectURL(blob);
-    
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'contacts.vcf';
-    document.body.appendChild(a);
-    a.click();
-    
-    // Nettoyer
-    setTimeout(() => {
-        document.body.removeChild(a);
-        window.URL.revokeObjectURL(url);
-    }, 0);
-    
-    showToast('Contacts exportés avec succès');
+// Appeler cette fonction dans onDeviceReady
+function initApp() {
+  // Initialiser les fonctionnalités avancées
+  enhanceSearch();
+
+  // Appeler addActionButtons() après avoir affiché les détails d'un contact
+  $(document).on("pageshow", "#details-page", function () {
+    if (currentContact) {
+      displayContactDetails();
+      addActionButtons();
+    }
+  });
 }
 
-// Ajouter un menu d'options pour les fonctionnalités supplémentaires
-function setupOptionsMenu() {
-    // Ajouter le bouton de menu si non existant
-    if ($('#options-button').length === 0) {
-        const $optionsButton = $(`
-            <a href="#" id="options-button" class="ui-btn ui-btn-left ui-icon-bars ui-btn-icon-notext ui-corner-all">Options</a>
-        `);
-        
-        // Ajouter au header de la page d'accueil
-        $('#home [data-role="header"]').prepend($optionsButton);
-        
-        // Créer le menu popup
-        $('body').append(`
-            <div data-role="popup" id="options-menu" data-theme="a">
-                <ul data-role="listview" data-inset="true" style="min-width:210px;">
-                    <li data-role="list-divider">Options</li>
-                    <li><a href="#" id="export-contacts">Exporter les contacts</a></li>
-                    <li><a href="#" id="group-by-initial">Grouper par initiale</a></li>
-                    <li><a href="#" id="sort-by-group">Trier par groupe</a></li>
-                </ul>
-            </div>
-        `);
-        
-        // Initialiser le popup
-        $('#options-menu').popup();
-        
-        // Associer le bouton au popup
-        $('#options-button').on('click', function() {
-            $('#options-menu').popup('open', { positionTo: 'window' });
-        });
-        
-        // Gestionnaires d'événements pour les options
-        $('#export-contacts').on('click', function() {
-            $('#options-menu').popup('close');
-            exportContacts();
-        });
-        
-        $('#group-by-initial').on('click', function() {
-            $('#options-menu').popup('close');
-            organizeContactsByInitial();
-        });
-        
-        $('#sort-by-group').on('click', function() {
-            $('#options-menu').popup('close');
-            sortContactsByGroup();
-        });
-    }
-}
-
-// Trier les contacts par groupe
-function sortContactsByGroup() {
-    const contacts = getContacts();
-    const $contactList = $('#contact-list');
-    
-    // Vider la liste
-    $contactList.empty();
-    
-    if (contacts.length === 0) {
-        $contactList.html('<li class="empty-list"><p>Aucun contact trouvé. Ajoutez votre premier contact!</p></li>');
-        return;
-    }
-    
-    // Trier les contacts par groupe puis par nom
-    contacts.sort((a, b) => {
-        if (a.group === b.group) {
-            return a.name.localeCompare(b.name);
-        }
-        return a.group.localeCompare(b.group);
-    });
-    
-    // Regrouper les contacts par groupe
-    const groupedContacts = {};
-    
-    contacts.forEach(contact => {
-        if (!groupedContacts[contact.group]) {
-            groupedContacts[contact.group] = [];
-        }
-        groupedContacts[contact.group].push(contact);
-    });
-    
-    // Définir l'ordre des groupes
-    const groupOrder = ['famille', 'amis', 'travail', 'autre'];
-    
-    // Ajouter chaque groupe à la liste
-    groupOrder.forEach(group => {
-        if (groupedContacts[group] && groupedContacts[group].length > 0) {
-            // Formater le nom du groupe pour l'affichage
-            const groupName = group.charAt(0).toUpperCase() + group.slice(1);
-            
-            // Ajouter l'en-tête de groupe
-            $contactList.append(`
-                <li data-role="list-divider" class="ui-li-divider ${group}-header">${groupName}</li>
-            `);
-            
-            // Ajouter les contacts de ce groupe
-            groupedContacts[group].forEach(contact => {
-                const $item = $(`
-                    <li>
-                        <a href="#details-page" class="contact-item" data-id="${contact.id}">
-                            <img src="img/${contact.photo || 'logo.png'}" alt="${contact.name}" class="contact-avatar">
-                            <div class="contact-info">
-                                <h2>${contact.name}</h2>
-                                <p>${contact.phone}</p>
-                            </div>
-                        </a>
-                    </li>
-                `);
-                
-                $contactList.append($item);
-            });
-        }
-    });
-    
-    // Rafraîchir la liste pour appliquer le style jQuery Mobile
-    if ($contactList.hasClass('ui-listview')) {
-        $contactList.listview('refresh');
-    }
-    
-    // Ajouter un style pour les en-têtes de groupe
-    $('<style>')
-        .prop('type', 'text/css')
-        .html(`
-            .famille-header {
-                background-color: #ffebee !important;
-                color: #e53935 !important;
-                font-weight: bold !important;
-            }
-            .amis-header {
-                background-color: #e0f7fa !important;
-                color: #00acc1 !important;
-                font-weight: bold !important;
-            }
-            .travail-header {
-                background-color: #e8f5e9 !important;
-                color: #43a047 !important;
-                font-weight: bold !important;
-            }
-            .autre-header {
-                background-color: #f5f5f5 !important;
-                color: #757575 !important;
-                font-weight: bold !important;
-            }
-        `)
-        .appendTo('head');
-    
-    // Gestionnaire d'événements pour la sélection d'un contact
-    $('.contact-item').on('click', function() {
-        const contactId = $(this).data('id');
-        currentContact = getContactById(contactId);
-    });
-}
-
-// Appeler setupOptionsMenu lors du chargement de la page d'accueil
-$(document).on('pageshow', '#home', function() {
-    setupOptionsMenu();
-});
+// Modification à apporter à onDeviceReady
+// Ajoutez cet appel à la fin de la fonction onDeviceReady :
+// initApp();
