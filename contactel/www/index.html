@@ -143,7 +143,7 @@
                 <ul>
                     <li><a href="#">
                         <span class="nav-icon">⭐</span>
-                        Favourites
+                        Favorites
                     </a></li>
                     <li><a href="#">
                         <span class="nav-icon">🕒</span>
@@ -180,9 +180,9 @@
         <div data-role="footer" data-position="fixed">
             <div data-role="navbar">
                 <ul>
-                    <li><a href="#" id="call-btn" class="ui-btn ui-icon-phone ui-btn-icon-top">Appeler</a></li>
-                    <li><a href="#" id="sms-btn" class="ui-btn ui-icon-comment ui-btn-icon-top">SMS</a></li>
-                    <li><a href="#" id="email-btn" class="ui-btn ui-icon-mail ui-btn-icon-top">Email</a></li>
+                    <li><a href="#" id="call-btn" class="ui-btn ui-icon-phone ui-btn-icon-top">Call</a></li>
+                    <li><a href="#" id="sms-btn" class="ui-btn ui-icon-comment ui-btn-icon-top">Message</a></li>
+                    <li><a href="#" id="email-btn" class="ui-btn ui-icon-mail ui-btn-icon-top">Mail</a></li>
                 </ul>
             </div>
         </div>
@@ -191,41 +191,50 @@
     <!-- Page d'ajout -->
     <div data-role="page" id="add-page">
         <div data-role="header">
-            <a href="#home" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Retour</a>
-            <h1>Ajouter un contact</h1>
+            <a href="#home" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Cancel</a>
+            <h1>Nouveau contact</h1>
+            <a href="#" id="save-new-btn" class="ui-btn ui-btn-right">Done</a>
         </div>
         <div data-role="content">
             <form id="add-form">
-                <div class="profile-container">
-                    <img id="profile-preview" src="img/logo.png" class="profile-preview">
-                    <select id="profile-select" name="profile">
-                        <option value="logo.png">Par défaut</option>
-                        <!-- Les autres options seront ajoutées dynamiquement ou manuellement -->
+                <div class="emoji-selector">
+                    <div class="selected-emoji" id="selected-emoji">
+                        <span>👤</span>
+                    </div>
+                    <div class="emoji-label">add photo</div>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <input type="text" name="name" id="add-name" placeholder="Nom" required>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <input type="tel" name="phone" id="add-phone" placeholder="Téléphone" required>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <input type="email" name="email" id="add-email" placeholder="Email">
+                </div>
+                
+                <div class="ui-field-contain">
+                    <select name="emoji" id="add-emoji">
+                        <option value="">Choisir un emoji</option>
+                        <option value="🪐">🪐 Planète</option>
+                        <option value="🦞">🦞 Homard</option>
+                        <option value="🦋">🦋 Papillon</option>
+                        <option value="🌻">🌻 Tournesol</option>
+                        <option value="🎸">🎸 Guitare</option>
+                        <option value="🥥">🥥 Noix de coco</option>
+                        <option value="💥">💥 Explosion</option>
+                        <option value="🍒">🍒 Cerises</option>
+                        <option value="🌟">🌟 Étoile</option>
+                        <option value="🌈">🌈 Arc-en-ciel</option>
+                        <option value="🧸">🧸 Ours en peluche</option>
+                        <option value="🦕">🦕 Dinosaure</option>
                     </select>
                 </div>
                 
                 <div class="ui-field-contain">
-                    <label for="add-name">Nom</label>
-                    <input type="text" name="name" id="add-name" placeholder="Nom complet" required>
-                </div>
-                
-                <div class="ui-field-contain">
-                    <label for="add-phone">Téléphone</label>
-                    <input type="tel" name="phone" id="add-phone" placeholder="Numéro de téléphone" required>
-                </div>
-                
-                <div class="ui-field-contain">
-                    <label for="add-email">Email</label>
-                    <input type="email" name="email" id="add-email" placeholder="Adresse email">
-                </div>
-                
-                <div class="ui-field-contain">
-                    <label for="add-address">Adresse</label>
-                    <textarea name="address" id="add-address" placeholder="Adresse complète"></textarea>
-                </div>
-                
-                <div class="ui-field-contain">
-                    <label for="add-group">Groupe</label>
                     <select name="group" id="add-group">
                         <option value="famille">Famille</option>
                         <option value="amis">Amis</option>
@@ -242,42 +251,50 @@
     <!-- Page de modification -->
     <div data-role="page" id="edit-page">
         <div data-role="header">
-            <a href="#details-page" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Retour</a>
-            <h1>Modifier le contact</h1>
-            <a href="#" id="delete-btn" class="ui-btn ui-btn-right ui-icon-delete ui-btn-icon-notext ui-corner-all">Supprimer</a>
+            <a href="#details-page" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Cancel</a>
+            <h1>Modifier</h1>
+            <a href="#" id="save-edit-btn" class="ui-btn ui-btn-right">Done</a>
         </div>
         <div data-role="content">
             <form id="edit-form">
-                <div class="profile-container">
-                    <img id="edit-profile-preview" src="img/logo.png" class="profile-preview">
-                    <select id="edit-profile-select" name="profile">
-                        <option value="logo.png">Par défaut</option>
-                        <!-- Les autres options seront ajoutées dynamiquement ou manuellement -->
-                    </select>
+                <div class="emoji-selector">
+                    <div class="selected-emoji" id="edit-selected-emoji">
+                        <span>👤</span>
+                    </div>
+                    <div class="emoji-label">edit photo</div>
                 </div>
                 
                 <div class="ui-field-contain">
-                    <label for="edit-name">Nom</label>
                     <input type="text" name="name" id="edit-name" required>
                 </div>
                 
                 <div class="ui-field-contain">
-                    <label for="edit-phone">Téléphone</label>
                     <input type="tel" name="phone" id="edit-phone" required>
                 </div>
                 
                 <div class="ui-field-contain">
-                    <label for="edit-email">Email</label>
                     <input type="email" name="email" id="edit-email">
                 </div>
                 
                 <div class="ui-field-contain">
-                    <label for="edit-address">Adresse</label>
-                    <textarea name="address" id="edit-address"></textarea>
+                    <select name="emoji" id="edit-emoji">
+                        <option value="">Choisir un emoji</option>
+                        <option value="🪐">🪐 Planète</option>
+                        <option value="🦞">🦞 Homard</option>
+                        <option value="🦋">🦋 Papillon</option>
+                        <option value="🌻">🌻 Tournesol</option>
+                        <option value="🎸">🎸 Guitare</option>
+                        <option value="🥥">🥥 Noix de coco</option>
+                        <option value="💥">💥 Explosion</option>
+                        <option value="🍒">🍒 Cerises</option>
+                        <option value="🌟">🌟 Étoile</option>
+                        <option value="🌈">🌈 Arc-en-ciel</option>
+                        <option value="🧸">🧸 Ours en peluche</option>
+                        <option value="🦕">🦕 Dinosaure</option>
+                    </select>
                 </div>
                 
                 <div class="ui-field-contain">
-                    <label for="edit-group">Groupe</label>
                     <select name="group" id="edit-group">
                         <option value="famille">Famille</option>
                         <option value="amis">Amis</option>
@@ -287,6 +304,10 @@
                 </div>
                 
                 <button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b">Mettre à jour</button>
+                
+                <div class="delete-contact">
+                    <a href="#" id="delete-btn" class="ui-btn ui-corner-all ui-shadow ui-btn-b ui-btn-c">Supprimer le contact</a>
+                </div>
             </form>
         </div>
     </div>

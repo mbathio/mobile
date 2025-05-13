@@ -109,7 +109,20 @@ body {
     word-spacing: 0px !important;
 }
 
-/* Style pour le bloc côté droit */
+/* Personnalisation de l'emoji à côté du nom */
+.contact-info {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+}
+
+.contact-emoji {
+    font-size: 22px !important;
+    margin-left: 8px !important;
+}
+
+/* Index alphabétique (style iOS) */
 .alphabet-index {
     position: fixed;
     right: 5px;
@@ -131,29 +144,7 @@ body {
     text-align: center;
 }
 
-/* Personnalisation de l'emoji à côté du nom */
-.contact-info {
-    display: flex !important;
-    align-items: center !important;
-    justify-content: space-between !important;
-    width: 100% !important;
-}
-
-.contact-emoji {
-    font-size: 22px !important;
-    margin-left: 8px !important;
-}
-
-/* Style pour les sections D, E, F, G */
-.section-header {
-    background-color: #f2f2f7 !important;
-    color: #000 !important;
-    font-size: 20px !important;
-    font-weight: 600 !important;
-    padding: 8px 16px !important;
-}
-
-/* Barre de navigation inférieure */
+/* Barre de navigation inférieure (style iOS) */
 .ui-navbar {
     background-color: #f8f8f8 !important;
     border-top: 0.5px solid #c8c7cc !important;
@@ -188,8 +179,51 @@ body {
     color: #007aff !important;
 }
 
-/* Style de l'emoji à côté du contact */
-.contact-emoji {
-    margin-left: 8px;
-    font-size: 18px;
+/* Support pour le mode sombre (optionnel) */
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #000 !important;
+        color: #fff !important;
+    }
+    
+    .ui-header {
+        background-color: #1c1c1e !important;
+        border-bottom-color: #38383a !important;
+    }
+    
+    .ui-title {
+        color: #fff !important;
+    }
+    
+    .ui-input-search {
+        background-color: rgba(44, 44, 46, 0.8) !important;
+    }
+    
+    .ui-input-search input {
+        color: #fff !important;
+    }
+    
+    .ui-li-divider, 
+    .section-header {
+        background-color: #000 !important;
+        color: #fff !important;
+    }
+    
+    #contact-list li {
+        background-color: #1c1c1e !important;
+    }
+    
+    .contact-item {
+        color: #fff !important;
+        border-bottom-color: rgba(56, 56, 58, 0.8) !important;
+    }
+    
+    .contact-info h2 {
+        color: #fff !important;
+    }
+    
+    .ui-navbar {
+        background-color: #1c1c1e !important;
+        border-top-color: #38383a !important;
+    }
 }
