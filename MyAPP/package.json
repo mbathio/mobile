@@ -23,5 +23,8 @@
       "ios",
       "browser"
     ]
+  },
+  "dependencies": {
+    "io.cordova.hellocordova": "file:"
   }
 }
