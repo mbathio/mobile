@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -5,23 +6,142 @@
     <meta name="viewport" content="initial-scale=1, width=device-width, viewport-fit=cover">
     <meta name="color-scheme" content="light dark">
     <link rel="stylesheet" href="css/index.css">
-    <title>IMC Calculator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <title>Contactel</title>
 </head>
 <body>
-    <h1>Calculateur d'IMC</h1>
-    <form>
-        <label for="Poids">Poids (kg):</label>
-        <input type="number" id="Poids" placeholder="Votre poids en kg" required>
+    <div class="app">
+        <!-- Section principale avec liste de contacts -->
+        <div id="main-page" class="page active">
+            <header>
+                <h1>Contacts</h1>
+                <div class="header-actions">
+                    <button id="search-toggle"><i class="fas fa-search"></i></button>
+                    <button id="add-contact-btn"><i class="fas fa-plus"></i></button>
+                </div>
+            </header>
+            
+            <div id="search-bar" class="hidden">
+                <input type="text" id="search-input" placeholder="Rechercher...">
+                <button id="search-close"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div id="alphabet-nav" class="alphabet-index">
+                <!-- Généré dynamiquement en JS -->
+            </div>
+            
+            <div class="contact-list-container">
+                <ul id="contact-list" class="contact-list">
+                    <!-- Les contacts seront générés dynamiquement -->
+                </ul>
+            </div>
+        </div>
         
-        <label for="Hauteur">Taille (cm):</label>
-        <input type="number" id="Hauteur" placeholder="Votre taille en cm" required>
+        <!-- Page de détails du contact -->
+        <div id="contact-detail" class="page">
+            <header>
+                <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
+                <h2>Détails du contact</h2>
+                <button id="edit-contact-btn"><i class="fas fa-edit"></i></button>
+            </header>
+            
+            <div id="contact-info" class="contact-detail-container">
+                <!-- Les détails du contact seront générés dynamiquement -->
+            </div>
+            
+            <div class="contact-actions">
+                <button id="call-btn" class="action-btn">
+                    <i class="fas fa-phone"></i>
+                    <span>Appeler</span>
+                </button>
+                <button id="message-btn" class="action-btn">
+                    <i class="fas fa-comment"></i>
+                    <span>Message</span>
+                </button>
+                <button id="video-btn" class="action-btn">
+                    <i class="fas fa-video"></i>
+                    <span>Vidéo</span>
+                </button>
+                <button id="email-btn" class="action-btn">
+                    <i class="fas fa-envelope"></i>
+                    <span>Email</span>
+                </button>
+            </div>
+        </div>
         
-        <button type="submit">Calculer</button>
-    </form>
-    <div id="result">
-        <!-- Le résultat s'affichera ici -->
+        <!-- Page d'ajout/modification de contact -->
+        <div id="edit-page" class="page">
+            <header>
+                <button class="back-btn"><i class="fas fa-times"></i></button>
+                <h2 id="edit-title">Nouveau contact</h2>
+                <button id="save-contact-btn">Enregistrer</button>
+            </header>
+            
+            <form id="contact-form">
+                <input type="hidden" id="contact-id">
+                
+                <div class="form-avatar">
+                    <div class="avatar-placeholder">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <button type="button" id="add-photo">Ajouter photo</button>
+                </div>
+                
+                <div class="form-group">
+                    <label for="nom">Nom</label>
+                    <input type="text" id="nom" placeholder="Nom">
+                </div>
+                
+                <div class="form-group">
+                    <label for="prenom">Prénom</label>
+                    <input type="text" id="prenom" placeholder="Prénom">
+                </div>
+                
+                <div class="form-group">
+                    <label for="telephone">Téléphone</label>
+                    <input type="tel" id="telephone" placeholder="Téléphone">
+                </div>
+                
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" placeholder="Email">
+                </div>
+                
+                <div class="form-group">
+                    <label for="adresse">Adresse</label>
+                    <input type="text" id="adresse" placeholder="Adresse">
+                </div>
+                
+                <div class="form-group">
+                    <label for="groupe">Groupe</label>
+                    <select id="groupe">
+                        <option value="aucun">Aucun</option>
+                        <option value="famille">Famille</option>
+                        <option value="amis">Amis</option>
+                        <option value="travail">Travail</option>
+                    </select>
+                </div>
+                
+                <div class="delete-section">
+                    <button type="button" id="delete-contact-btn">Supprimer le contact</button>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Confirmation de suppression -->
+        <div id="delete-modal" class="modal">
+            <div class="modal-content">
+                <h3>Supprimer le contact</h3>
+                <p>Êtes-vous sûr de vouloir supprimer ce contact ?</p>
+                <div class="modal-actions">
+                    <button id="cancel-delete">Annuler</button>
+                    <button id="confirm-delete">Supprimer</button>
+                </div>
+            </div>
+        </div>
     </div>
     
+    <script src="cordova.js"></script>
     <script src="js/index.js"></script>
 </body>
 </html>
