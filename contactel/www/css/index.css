@@ -1,0 +1,195 @@
+/* Styles généraux */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: #f2f2f7;
+}
+
+/* En-tête de l'application */
+.ui-header {
+    background-color: #f8f8f8 !important;
+    border-bottom: 0.5px solid #c8c7cc !important;
+    text-align: center;
+}
+
+.ui-title {
+    color: #000 !important;
+    font-size: 18px !important;
+    font-weight: 600 !important;
+    margin: 0 !important;
+    padding: 12px 0 !important;
+}
+
+/* Bouton '+' dans l'en-tête */
+.ui-header .ui-btn-right {
+    color: #007aff !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    font-size: 28px !important;
+    font-weight: 300 !important;
+    margin-right: 10px !important;
+}
+
+/* Barre de recherche */
+.ui-input-search {
+    background-color: rgba(142, 142, 147, 0.12) !important;
+    border: none !important;
+    border-radius: 10px !important;
+    margin: 8px 16px !important;
+    height: 36px !important;
+}
+
+.ui-input-search input {
+    font-size: 16px !important;
+    margin-left: 10px !important;
+    color: #000 !important;
+}
+
+.ui-input-search .ui-input-clear {
+    background-color: #8e8e93 !important;
+    border-radius: 50% !important;
+    opacity: 0.5 !important;
+    margin: 4px 4px 0 0 !important;
+}
+
+/* Style des séparateurs de lettres */
+.ui-li-divider, 
+.section-header {
+    background-color: #f2f2f7 !important;
+    color: #000 !important;
+    font-size: 20px !important;
+    font-weight: 500 !important;
+    border: none !important;
+    padding: 6px 16px 3px !important;
+    height: 30px !important;
+    line-height: 20px !important;
+    margin-top: 5px !important;
+}
+
+/* Style des contacts dans la liste */
+#contact-list li {
+    padding: 0 !important;
+    border: none !important;
+    background-color: #fff !important;
+}
+
+.contact-item {
+    display: flex !important;
+    padding: 10px 16px !important;
+    text-decoration: none !important;
+    color: #000 !important;
+    border-bottom: 0.5px solid rgba(200, 199, 204, 0.5) !important;
+    min-height: 44px !important;
+    align-items: center !important;
+}
+
+/* Suppression des flèches de navigation par défaut */
+.ui-listview .ui-btn-icon-right:after {
+    display: none !important;
+}
+
+/* Style du texte du contact */
+.contact-info h2 {
+    font-size: 17px !important;
+    font-weight: normal !important;
+    margin: 0 !important;
+    color: #000 !important;
+}
+
+/* Afficher le nom du contact en minuscules avec espace */
+.contact-info h2 {
+    text-transform: lowercase !important;
+    letter-spacing: 2px !important;
+    word-spacing: 0px !important;
+}
+
+/* Style pour le bloc côté droit */
+.alphabet-index {
+    position: fixed;
+    right: 5px;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    background-color: transparent;
+    z-index: 1000;
+}
+
+.alphabet-index a {
+    color: #007aff;
+    font-size: 11px;
+    text-decoration: none;
+    padding: 1px 4px;
+    font-weight: normal;
+    text-align: center;
+}
+
+/* Personnalisation de l'emoji à côté du nom */
+.contact-info {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    width: 100% !important;
+}
+
+.contact-emoji {
+    font-size: 22px !important;
+    margin-left: 8px !important;
+}
+
+/* Style pour les sections D, E, F, G */
+.section-header {
+    background-color: #f2f2f7 !important;
+    color: #000 !important;
+    font-size: 20px !important;
+    font-weight: 600 !important;
+    padding: 8px 16px !important;
+}
+
+/* Barre de navigation inférieure */
+.ui-navbar {
+    background-color: #f8f8f8 !important;
+    border-top: 0.5px solid #c8c7cc !important;
+    height: 65px !important;
+}
+
+.ui-navbar .ui-btn {
+    background-color: transparent !important;
+    color: #8e8e93 !important;
+    font-size: 10px !important;
+    border: none !important;
+    opacity: 0.8;
+    padding-top: 8px !important;
+    box-shadow: none !important;
+}
+
+.ui-navbar .ui-btn.ui-btn-active {
+    opacity: 1;
+    color: #007aff !important;
+}
+
+/* Style pour les icônes de navigation */
+.nav-icon {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 3px;
+}
+
+/* Pour les contacts actifs en bleu en haut */
+.ui-navbar .ui-btn.ui-btn-active .nav-icon,
+.ui-navbar .ui-btn.ui-btn-active {
+    color: #007aff !important;
+}
+
+/* Style de l'emoji à côté du contact */
+.contact-emoji {
+    margin-left: 8px;
+    font-size: 18px;
+}

@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self' data: gap: 'unsafe-inline' https://code.jquery.com https://ajax.googleapis.com; style-src 'self' 'unsafe-inline'; media-src *; img-src 'self' data: content:;">
+    <link rel="stylesheet" href="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.css">
+    <link rel="stylesheet" type="text/css" href="css/index.css">
+    <title>Contactel</title>
+</head>
+<body>
+    <!-- Simulation de la barre de statut iOS -->
+    <div class="status-bar">
+        <div class="left">Virgin &nbsp;<span>📶</span></div>
+        <div class="center">8:24 am</div>
+        <div class="right">100% <span>🔋</span></div>
+    </div>
+    
+    <!-- Page d'accueil -->
+    <div data-role="page" id="home">
+        <div data-role="header" class="ui-header">
+            <h1 class="ui-title">Contacts</h1>
+            <a href="#add-page" class="ui-btn ui-btn-right ui-icon-plus ui-btn-icon-notext ui-corner-all">Ajouter</a>
+        </div>
+
+        <div data-role="content">
+            <div class="ui-input-search ui-body-inherit ui-corner-all ui-shadow-inset">
+                <input type="search" id="search-input" placeholder="Search" data-enhanced="true">
+                <a href="#" class="ui-input-clear ui-btn ui-icon-delete ui-btn-icon-notext ui-corner-all"></a>
+            </div>
+            
+            <!-- Liste des contacts avec sections alphabétiques -->
+            <ul id="contact-list" data-role="listview">
+                <li class="section-header">D</li>
+                <li>
+                    <a href="#details-page" class="contact-item" data-id="diana">
+                        <div class="contact-info">
+                            <h2>d i a n a</h2>
+                            <span class="contact-emoji">🪐</span>
+                        </div>
+                    </a>
+                </li>
+                
+                <li class="section-header">E</li>
+                <li>
+                    <a href="#details-page" class="contact-item" data-id="elizabeth">
+                        <div class="contact-info">
+                            <h2>e l i z a b e t h</h2>
+                            <span class="contact-emoji">🦞</span>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="#details-page" class="contact-item" data-id="emily">
+                        <div class="contact-info">
+                            <h2>e m i l y</h2>
+                            <span class="contact-emoji">🦋</span>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="#details-page" class="contact-item" data-id="erin">
+                        <div class="contact-info">
+                            <h2>e r i n</h2>
+                            <span class="contact-emoji">🌻</span>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="#details-page" class="contact-item" data-id="evan">
+                        <div class="contact-info">
+                            <h2>e v a n</h2>
+                            <span class="contact-emoji">🎸</span>
+                        </div>
+                    </a>
+                </li>
+                
+                <li class="section-header">F</li>
+                <li>
+                    <a href="#details-page" class="contact-item" data-id="faith">
+                        <div class="contact-info">
+                            <h2>f a i t h</h2>
+                            <span class="contact-emoji">🥥</span>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="#details-page" class="contact-item" data-id="finley">
+                        <div class="contact-info">
+                            <h2>f i n l e y</h2>
+                            <span class="contact-emoji">💥</span>
+                        </div>
+                    </a>
+                </li>
+                <li>
+                    <a href="#details-page" class="contact-item" data-id="freya">
+                        <div class="contact-info">
+                            <h2>f r e y a</h2>
+                            <span class="contact-emoji">🍒</span>
+                        </div>
+                    </a>
+                </li>
+                
+                <li class="section-header">G</li>
+                <!-- Ajoutez d'autres contacts ici -->
+            </ul>
+            
+            <!-- Index alphabétique -->
+            <div class="alphabet-index">
+                <a href="#A">A</a>
+                <a href="#B">B</a>
+                <a href="#C">C</a>
+                <a href="#D">D</a>
+                <a href="#E">E</a>
+                <a href="#F">F</a>
+                <a href="#G">G</a>
+                <a href="#H">H</a>
+                <a href="#I">I</a>
+                <a href="#J">J</a>
+                <a href="#K">K</a>
+                <a href="#L">L</a>
+                <a href="#M">M</a>
+                <a href="#N">N</a>
+                <a href="#O">O</a>
+                <a href="#P">P</a>
+                <a href="#Q">Q</a>
+                <a href="#R">R</a>
+                <a href="#S">S</a>
+                <a href="#T">T</a>
+                <a href="#U">U</a>
+                <a href="#V">V</a>
+                <a href="#W">W</a>
+                <a href="#X">X</a>
+                <a href="#Y">Y</a>
+                <a href="#Z">Z</a>
+                <a href="#">#</a>
+            </div>
+        </div>
+
+        <!-- Navigation en bas -->
+        <div data-role="footer" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="#">
+                        <span class="nav-icon">⭐</span>
+                        Favourites
+                    </a></li>
+                    <li><a href="#">
+                        <span class="nav-icon">🕒</span>
+                        Recents
+                    </a></li>
+                    <li><a href="#" class="ui-btn-active">
+                        <span class="nav-icon">👤</span>
+                        Contacts
+                    </a></li>
+                    <li><a href="#">
+                        <span class="nav-icon">🔢</span>
+                        Keypad
+                    </a></li>
+                    <li><a href="#">
+                        <span class="nav-icon">🔊</span>
+                        Voicemail
+                    </a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Autres pages (détails, ajout, modification) -->
+    <!-- Page de détails -->
+    <div data-role="page" id="details-page">
+        <div data-role="header">
+            <a href="#home" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Retour</a>
+            <h1>Contact</h1>
+            <a href="#edit-page" class="ui-btn ui-btn-right ui-icon-edit ui-btn-icon-notext ui-corner-all">Modifier</a>
+        </div>
+        <div data-role="content" id="contact-details">
+            <!-- Le contenu sera rempli dynamiquement -->
+        </div>
+        <div data-role="footer" data-position="fixed">
+            <div data-role="navbar">
+                <ul>
+                    <li><a href="#" id="call-btn" class="ui-btn ui-icon-phone ui-btn-icon-top">Appeler</a></li>
+                    <li><a href="#" id="sms-btn" class="ui-btn ui-icon-comment ui-btn-icon-top">SMS</a></li>
+                    <li><a href="#" id="email-btn" class="ui-btn ui-icon-mail ui-btn-icon-top">Email</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Page d'ajout -->
+    <div data-role="page" id="add-page">
+        <div data-role="header">
+            <a href="#home" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Retour</a>
+            <h1>Ajouter un contact</h1>
+        </div>
+        <div data-role="content">
+            <form id="add-form">
+                <div class="profile-container">
+                    <img id="profile-preview" src="img/logo.png" class="profile-preview">
+                    <select id="profile-select" name="profile">
+                        <option value="logo.png">Par défaut</option>
+                        <!-- Les autres options seront ajoutées dynamiquement ou manuellement -->
+                    </select>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="add-name">Nom</label>
+                    <input type="text" name="name" id="add-name" placeholder="Nom complet" required>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="add-phone">Téléphone</label>
+                    <input type="tel" name="phone" id="add-phone" placeholder="Numéro de téléphone" required>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="add-email">Email</label>
+                    <input type="email" name="email" id="add-email" placeholder="Adresse email">
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="add-address">Adresse</label>
+                    <textarea name="address" id="add-address" placeholder="Adresse complète"></textarea>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="add-group">Groupe</label>
+                    <select name="group" id="add-group">
+                        <option value="famille">Famille</option>
+                        <option value="amis">Amis</option>
+                        <option value="travail">Travail</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b">Enregistrer</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Page de modification -->
+    <div data-role="page" id="edit-page">
+        <div data-role="header">
+            <a href="#details-page" data-rel="back" class="ui-btn ui-btn-left ui-icon-back ui-btn-icon-notext ui-corner-all">Retour</a>
+            <h1>Modifier le contact</h1>
+            <a href="#" id="delete-btn" class="ui-btn ui-btn-right ui-icon-delete ui-btn-icon-notext ui-corner-all">Supprimer</a>
+        </div>
+        <div data-role="content">
+            <form id="edit-form">
+                <div class="profile-container">
+                    <img id="edit-profile-preview" src="img/logo.png" class="profile-preview">
+                    <select id="edit-profile-select" name="profile">
+                        <option value="logo.png">Par défaut</option>
+                        <!-- Les autres options seront ajoutées dynamiquement ou manuellement -->
+                    </select>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="edit-name">Nom</label>
+                    <input type="text" name="name" id="edit-name" required>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="edit-phone">Téléphone</label>
+                    <input type="tel" name="phone" id="edit-phone" required>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="edit-email">Email</label>
+                    <input type="email" name="email" id="edit-email">
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="edit-address">Adresse</label>
+                    <textarea name="address" id="edit-address"></textarea>
+                </div>
+                
+                <div class="ui-field-contain">
+                    <label for="edit-group">Groupe</label>
+                    <select name="group" id="edit-group">
+                        <option value="famille">Famille</option>
+                        <option value="amis">Amis</option>
+                        <option value="travail">Travail</option>
+                        <option value="autre">Autre</option>
+                    </select>
+                </div>
+                
+                <button type="submit" class="ui-btn ui-corner-all ui-shadow ui-btn-b">Mettre à jour</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+    <script src="https://code.jquery.com/mobile/1.4.5/jquery.mobile-1.4.5.min.js"></script>
+    <script src="cordova.js"></script>
+    <script src="js/index.js"></script>
+</body>
+</html>
