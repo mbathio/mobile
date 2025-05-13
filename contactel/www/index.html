@@ -9,20 +9,57 @@
     <title>Contactel</title>
 </head>
 <body>
+    <div class="status-bar">
+        <div class="status-bar-time">06:38</div>
+        <div class="status-bar-icons">
+            <span class="signal-icon"></span>
+            <span class="wifi-icon"></span>
+            <span class="battery-icon"></span>
+        </div>
+    </div>
+    
     <header>
-        <h1>Contactel</h1>
+        <div class="nav-bar">
+            <button class="back-button"><i class="fas fa-chevron-left"></i> Récents</button>
+            <div class="actions-container">
+                <button id="addContactBtn" class="add-button">
+                    <i class="fas fa-plus"></i>
+                </button>
+            </div>
+        </div>
         <div class="search-bar">
-            <input type="text" id="searchInput" placeholder="Rechercher un contact...">
-            <button id="searchBtn"><i class="fas fa-search"></i></button>
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher">
+            </div>
         </div>
     </header>
     
-    <button id="addContactBtn" class="add-contact">
-        <i class="fas fa-plus"></i> Ajouter un contact
-    </button>
-    
     <div class="alphabet-index" id="alphabetIndex">
         <!-- Les lettres seront générées dynamiquement -->
+    </div>
+    
+    <div class="tabs-container">
+        <button class="tab-button">
+            <i class="fas fa-star"></i>
+            <span>Favoris</span>
+        </button>
+        <button class="tab-button active">
+            <i class="fas fa-clock"></i>
+            <span>Récents</span>
+        </button>
+        <button class="tab-button">
+            <i class="fas fa-user"></i>
+            <span>Contacts</span>
+        </button>
+        <button class="tab-button">
+            <i class="fas fa-th"></i>
+            <span>Clavier</span>
+        </button>
+        <button class="tab-button">
+            <i class="fas fa-voicemail"></i>
+            <span>Messagerie</span>
+        </button>
     </div>
     
     <ul class="contact-list" id="contactList">
@@ -73,6 +110,67 @@
             <div class="form-actions">
                 <button type="button" id="cancelDeleteBtn" class="btn-cancel">Annuler</button>
                 <button type="button" id="confirmDeleteBtn" class="btn-save">Supprimer</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vue détaillée d'un contact (style iPhone) -->
+    <div id="contactDetailView" class="contact-detail-view">
+        <div class="contact-detail-header">
+            <button id="backToListBtn" class="back-button"><i class="fas fa-chevron-left"></i> Contacts</button>
+        </div>
+        <div class="contact-detail-info">
+            <div class="contact-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <h2 id="contactDetailName"></h2>
+            <div class="contact-detail-actions">
+                <button class="action-circle message-btn">
+                    <i class="fas fa-comment"></i>
+                    <span>Message</span>
+                </button>
+                <button class="action-circle call-btn">
+                    <i class="fas fa-phone"></i>
+                    <span>Appel</span>
+                </button>
+                <button class="action-circle video-btn">
+                    <i class="fas fa-video"></i>
+                    <span>Vidéo</span>
+                </button>
+                <button class="action-circle mail-btn">
+                    <i class="fas fa-envelope"></i>
+                    <span>Mail</span>
+                </button>
+            </div>
+        </div>
+        <div class="contact-detail-data">
+            <div class="data-section">
+                <div class="data-item" id="phoneNumberDetail">
+                    <div class="data-label">Mobile</div>
+                    <div class="data-value"></div>
+                </div>
+            </div>
+            <div class="contact-actions-list">
+                <button class="contact-action-btn share-btn">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Partager le contact</span>
+                </button>
+                <button class="contact-action-btn add-fav-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>Ajouter aux favoris</span>
+                </button>
+                <button class="contact-action-btn add-emergency-btn">
+                    <i class="fas fa-star"></i>
+                    <span>Ajouter aux contacts d'urgence</span>
+                </button>
+                <button class="contact-action-btn share-location-btn">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Partager ma position</span>
+                </button>
+                <button class="contact-action-btn block-btn">
+                    <i class="fas fa-ban"></i>
+                    <span>Bloquer ce contact</span>
+                </button>
             </div>
         </div>
     </div>
