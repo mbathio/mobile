@@ -4,7 +4,9 @@ document.addEventListener('deviceready', onDeviceReady, false);
 // État global de l'application
 const app = {
     contacts: [],
+    recentCalls: [],
     currentContactId: null,
+    currentView: 'recents', // 'recents', 'contacts', 'favorites', 'keypad', 'voicemail'
     isReady: false
 };
 
@@ -20,14 +22,32 @@ function onDeviceReady() {
     document.addEventListener('resume', onResume, false);
     document.addEventListener('backbutton', onBackButton, false);
     
-    // Charger les contacts depuis le stockage local
+    // Mettre à jour l'heure dans la barre de statut
+    updateStatusBarTime();
+    
+    // Mettre à jour l'heure toutes les minutes
+    setInterval(updateStatusBarTime, 60000);
+    
+    // Charger les contacts et les appels récents depuis le stockage local
     loadContacts();
+    loadRecentCalls();
     
     // Initialiser les gestionnaires d'événements
     initEventListeners();
     
     // Générer l'index alphabétique
     generateAlphabetIndex();
+    
+    // Afficher la vue initiale (récents par défaut)
+    switchView('recents');
+}
+
+// Mettre à jour l'heure dans la barre de statut
+function updateStatusBarTime() {
+    const now = new Date();
+    const hours = now.getHours().toString().padStart(2, '0');
+    const minutes = now.getMinutes().toString().padStart(2, '0');
+    document.querySelector('.status-bar-time').textContent = `${hours}:${minutes}`;
 }
 
 // Gérer l'événement pause (application en arrière-plan)
@@ -35,6 +55,7 @@ function onPause() {
     console.log('Application mise en pause');
     // Sauvegarder l'état si nécessaire
     saveContacts();
+    saveRecentCalls();
 }
 
 // Gérer l'événement resume (retour au premier plan)
@@ -42,6 +63,8 @@ function onResume() {
     console.log('Application reprise');
     // Rafraîchir les données si nécessaire
     loadContacts();
+    loadRecentCalls();
+    updateStatusBarTime();
 }
 
 // Gérer le bouton retour sur Android
@@ -55,6 +78,13 @@ function onBackButton(e) {
     
     if (document.getElementById('deleteModal').style.display === 'block') {
         closeModal('deleteModal');
+        e.preventDefault();
+        return false;
+    }
+    
+    // Si la vue détaillée est ouverte, revenir à la liste
+    if (document.getElementById('contactDetailView').style.display === 'flex') {
+        document.getElementById('contactDetailView').style.display = 'none';
         e.preventDefault();
         return false;
     }
@@ -73,6 +103,11 @@ function loadContacts() {
     const savedContacts = localStorage.getItem('contacts');
     app.contacts = savedContacts ? JSON.parse(savedContacts) : [];
     
+    // Si aucun contact n'existe, créer des contacts de démonstration
+    if (app.contacts.length === 0) {
+        createDemoContacts();
+    }
+    
     // Trier les contacts par nom
     app.contacts.sort((a, b) => {
         const nameA = `${a.nom} ${a.prenom}`.toLowerCase();
@@ -80,8 +115,217 @@ function loadContacts() {
         return nameA.localeCompare(nameB);
     });
     
-    // Afficher les contacts
-    displayContacts();
+    // Afficher les contacts si on est dans cette vue
+    if (app.currentView === 'contacts') {
+        displayContacts();
+    }
+}
+
+// Créer des contacts de démonstration
+function createDemoContacts() {
+    app.contacts = [
+        {
+            id: '1',
+            nom: 'Francescon',
+            prenom: 'Alberto',
+            telephone: '+39 351 5289817',
+            email: 'alberto@example.com',
+            type: 'cellulare',
+            pays: 'Italia'
+        },
+        {
+            id: '2',
+            nom: 'Kalpi',
+            prenom: '',
+            telephone: '+39 351 1234567',
+            email: 'kalpi@example.com',
+            type: 'cellulare',
+            pays: 'Italia'
+        },
+        {
+            id: '3',
+            nom: 'Kalpi',
+            prenom: 'Mamma',
+            telephone: '+39 351 7654321',
+            email: 'mamma.kalpi@example.com',
+            type: 'cellulare',
+            pays: 'Italia'
+        },
+        {
+            id: '4',
+            nom: 'Mauro',
+            prenom: 'Brini',
+            telephone: '+39 351 9876543',
+            email: 'brini.mauro@example.com',
+            type: 'cellulare',
+            pays: 'Italia'
+        },
+        {
+            id: '5',
+            nom: 'Enrico',
+            prenom: 'Cervo',
+            telephone: '+39 351 3456789',
+            email: 'cervo.enrico@example.com',
+            type: 'cellulare',
+            pays: 'Italia'
+        },
+        {
+            id: '6',
+            nom: 'Clf Pulizie',
+            prenom: 'Elida',
+            telephone: '+39 351 8765432',
+            email: 'elida@clfpulizie.it',
+            type: 'telefono',
+            pays: 'Italia'
+        },
+        {
+            id: '7',
+            nom: '',
+            prenom: '',
+            telephone: '+39 0437 950437',
+            email: '',
+            type: 'sconosciuto',
+            pays: 'Belluno, Veneto'
+        },
+        {
+            id: '8',
+            nom: '',
+            prenom: '',
+            telephone: '347 4634881',
+            email: '',
+            type: 'sconosciuto',
+            pays: 'Italia'
+        }
+    ];
+    saveContacts();
+}
+
+// Charger les appels récents depuis le stockage local
+function loadRecentCalls() {
+    const savedCalls = localStorage.getItem('recentCalls');
+    app.recentCalls = savedCalls ? JSON.parse(savedCalls) : [];
+    
+    // Si aucun appel récent n'existe, créer des appels de démonstration
+    if (app.recentCalls.length === 0) {
+        createDemoRecentCalls();
+    }
+    
+    // Afficher les appels récents si on est dans cette vue
+    if (app.currentView === 'recents') {
+        displayRecentCalls();
+    }
+}
+
+// Créer des appels récents de démonstration
+function createDemoRecentCalls() {
+    const now = new Date();
+    const yesterday = new Date(now);
+    yesterday.setDate(now.getDate() - 1);
+    
+    app.recentCalls = [
+        {
+            id: '1',
+            contactId: '1', // Alberto Francescon
+            date: yesterday,
+            duration: '01:04',
+            type: 'entrant',
+            status: 'répondu',
+            count: 4
+        },
+        {
+            id: '2',
+            contactId: '2', // Kalpi
+            date: yesterday,
+            duration: '00:00',
+            type: 'sortant',
+            status: 'manqué',
+            count: 1
+        },
+        {
+            id: '3',
+            contactId: null,
+            telephone: 'Numero sconosciuto',
+            type: 'sconosciuto',
+            date: yesterday,
+            duration: '00:00',
+            status: 'manqué',
+            count: 1
+        },
+        {
+            id: '4',
+            contactId: null,
+            telephone: 'Numero sconosciuto',
+            type: 'sconosciuto',
+            date: yesterday,
+            duration: '00:00',
+            status: 'manqué',
+            count: 1
+        },
+        {
+            id: '5',
+            contactId: '1', // Alberto Francescon
+            date: yesterday,
+            duration: '00:23',
+            type: 'entrant',
+            status: 'répondu',
+            count: 2
+        },
+        {
+            id: '6',
+            contactId: '6', // Elida Clf Pulizie
+            date: yesterday,
+            duration: '03:15',
+            type: 'sortant',
+            status: 'répondu',
+            count: 1
+        },
+        {
+            id: '7',
+            contactId: '4', // Brini Mauro
+            date: yesterday,
+            duration: '01:42',
+            type: 'entrant',
+            status: 'répondu',
+            count: 1
+        },
+        {
+            id: '8',
+            contactId: '3', // Mamma Kalpi
+            date: yesterday,
+            duration: '05:11',
+            type: 'entrant',
+            status: 'répondu',
+            count: 1
+        },
+        {
+            id: '9',
+            contactId: '5', // Cervo Enrico
+            date: yesterday,
+            duration: '00:47',
+            type: 'sortant',
+            status: 'répondu',
+            count: 1
+        },
+        {
+            id: '10',
+            contactId: '7', // +39 0437 950437
+            date: yesterday,
+            duration: '02:18',
+            type: 'entrant',
+            status: 'répondu',
+            count: 1
+        },
+        {
+            id: '11',
+            contactId: '8', // 347 4634881
+            date: now,
+            duration: '00:00',
+            type: 'sortant',
+            status: 'annulé',
+            count: 1
+        }
+    ];
+    saveRecentCalls();
 }
 
 // Enregistrer les contacts dans le stockage local
@@ -89,10 +333,60 @@ function saveContacts() {
     localStorage.setItem('contacts', JSON.stringify(app.contacts));
 }
 
+// Enregistrer les appels récents dans le stockage local
+function saveRecentCalls() {
+    localStorage.setItem('recentCalls', JSON.stringify(app.recentCalls));
+}
+
+// Formater la date en style iOS (aujourd'hui, hier, date)
+function formatDate(date) {
+    const now = new Date();
+    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+    
+    const inputDate = new Date(date);
+    const inputDay = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
+    
+    if (inputDay.getTime() === today.getTime()) {
+        return 'oggi';
+    } else if (inputDay.getTime() === yesterday.getTime()) {
+        return 'ieri';
+    } else {
+        const day = inputDate.getDate().toString().padStart(2, '0');
+        const month = (inputDate.getMonth() + 1).toString().padStart(2, '0');
+        const year = inputDate.getFullYear();
+        return `${day}/${month}/${year}`;
+    }
+}
+
+// Formater l'heure en style iOS
+function formatTime(date) {
+    const inputDate = new Date(date);
+    const hours = inputDate.getHours().toString().padStart(2, '0');
+    const minutes = inputDate.getMinutes().toString().padStart(2, '0');
+    return `${hours}:${minutes}`;
+}
+
 // Afficher les contacts dans la liste
 function displayContacts(filteredContacts = null) {
     const contactList = document.getElementById('contactList');
     contactList.innerHTML = '';
+    
+    // Changer le titre et les boutons selon la vue
+    document.querySelector('.nav-bar .back-button').innerHTML = '<i class="fas fa-chevron-left"></i> Recenti';
+    document.querySelector('.nav-bar .back-button').style.visibility = 'visible';
+    document.querySelector('.nav-bar .actions-container').innerHTML = `
+        <button id="addContactBtn" class="add-button">
+            <i class="fas fa-plus"></i>
+        </button>
+    `;
+    document.getElementById('addContactBtn').addEventListener('click', () => {
+        document.getElementById('modalTitle').textContent = 'Ajouter un contact';
+        document.getElementById('contactId').value = '';
+        document.getElementById('contactForm').reset();
+        openModal('contactModal');
+    });
     
     const contactsToDisplay = filteredContacts || app.contacts;
     
@@ -101,44 +395,346 @@ function displayContacts(filteredContacts = null) {
         return;
     }
     
+    // Regrouper les contacts par première lettre
+    const groupedContacts = {};
     contactsToDisplay.forEach(contact => {
-        const contactItem = document.createElement('li');
-        contactItem.className = 'contact-item';
-        contactItem.dataset.id = contact.id;
+        // Utiliser le nom ou le prénom comme clé de tri
+        const displayName = contact.nom || contact.prenom;
+        if (!displayName) {
+            // Si pas de nom ni prénom, mettre dans "?"
+            const firstLetter = "?";
+            if (!groupedContacts[firstLetter]) {
+                groupedContacts[firstLetter] = [];
+            }
+            groupedContacts[firstLetter].push(contact);
+            return;
+        }
         
-        contactItem.innerHTML = `
-            <div class="contact-info">
-                <div class="contact-name">${contact.nom} ${contact.prenom}</div>
-                <div class="contact-phone">${contact.telephone}</div>
-            </div>
-            <div class="contact-actions">
-                <button class="action-btn call-btn" data-id="${contact.id}">
-                    <i class="fas fa-phone"></i>
-                </button>
-                <button class="action-btn edit-btn" data-id="${contact.id}">
-                    <i class="fas fa-edit"></i>
-                </button>
-                <button class="action-btn delete-btn" data-id="${contact.id}">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
+        const firstLetter = displayName.charAt(0).toUpperCase();
+        if (!groupedContacts[firstLetter]) {
+            groupedContacts[firstLetter] = [];
+        }
+        groupedContacts[firstLetter].push(contact);
+    });
+    
+    // Trier les clés alphabétiquement
+    const sortedKeys = Object.keys(groupedContacts).sort();
+    
+    // Créer les sections par lettre
+    sortedKeys.forEach(letter => {
+        // Ajouter le séparateur de section
+        const divider = document.createElement('li');
+        divider.className = 'divider';
+        divider.textContent = letter;
+        contactList.appendChild(divider);
+        
+        // Ajouter les contacts de cette section
+        groupedContacts[letter].forEach(contact => {
+            const contactItem = document.createElement('li');
+            contactItem.className = 'contact-item';
+            contactItem.dataset.id = contact.id;
+            
+            // Déterminer le nom à afficher
+            let displayName = '';
+            if (contact.nom && contact.prenom) {
+                displayName = `${contact.nom} ${contact.prenom}`;
+            } else if (contact.nom) {
+                displayName = contact.nom;
+            } else if (contact.prenom) {
+                displayName = contact.prenom;
+            } else {
+                displayName = contact.telephone;
+            }
+            
+            // Type d'appareil (cellulare, telefono, etc.)
+            const deviceType = contact.type || 'cellulare';
+            
+            contactItem.innerHTML = `
+                <div class="contact-info">
+                    <div class="contact-name">${displayName}</div>
+                    <div class="contact-phone">${deviceType}</div>
+                </div>
+                <div class="contact-actions">
+                    <button class="info-btn" data-id="${contact.id}">
+                        <i class="fas fa-info-circle"></i>
+                    </button>
+                </div>
+            `;
+            
+            contactList.appendChild(contactItem);
+            
+            // Ajouter l'événement pour afficher les détails du contact
+            contactItem.addEventListener('click', () => {
+                showContactDetails(contact.id);
+            });
+        });
+    });
+    
+    // Réattacher les gestionnaires d'événements pour les boutons d'info
+    document.querySelectorAll('.info-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const contactId = btn.dataset.id;
+            showContactDetails(contactId);
+        });
+    });
+}
+
+// Afficher les appels récents
+function displayRecentCalls(filteredCalls = null) {
+    const contactList = document.getElementById('contactList');
+    contactList.innerHTML = '';
+    
+    // Changer le titre et les boutons selon la vue
+    document.querySelector('.nav-bar .back-button').style.visibility = 'hidden';
+    document.querySelector('.nav-bar .actions-container').innerHTML = `
+        <button id="editCallsBtn" class="edit-button">
+            Modifica
+        </button>
+    `;
+    document.getElementById('editCallsBtn').addEventListener('click', () => {
+        // Logique pour éditer les appels récents
+        alert('Fonction d\'édition non implémentée');
+    });
+    
+    // Ajouter les onglets de filtre (Tutte, Perse)
+    const filterTabs = document.createElement('div');
+    filterTabs.className = 'filter-tabs';
+    filterTabs.innerHTML = `
+        <button class="filter-tab active">Tutte</button>
+        <button class="filter-tab">Perse</button>
+    `;
+    contactList.parentNode.insertBefore(filterTabs, contactList);
+    
+    // Gestionnaires d'événements pour les onglets
+    document.querySelectorAll('.filter-tab').forEach(tab => {
+        tab.addEventListener('click', (e) => {
+            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
+            e.target.classList.add('active');
+            
+            // Filtrer les appels selon l'onglet
+            if (e.target.textContent === 'Perse') {
+                const missedCalls = app.recentCalls.filter(call => call.status === 'manqué');
+                displayRecentCalls(missedCalls);
+            } else {
+                displayRecentCalls();
+            }
+        });
+    });
+    
+    const callsToDisplay = filteredCalls || app.recentCalls;
+    
+    if (callsToDisplay.length === 0) {
+        contactList.innerHTML = '<li class="contact-item">Aucun appel récent</li>';
+        return;
+    }
+    
+    // Regrouper les appels par date
+    const groupedCalls = {};
+    callsToDisplay.forEach(call => {
+        const dateGroup = formatDate(call.date);
+        if (!groupedCalls[dateGroup]) {
+            groupedCalls[dateGroup] = [];
+        }
+        groupedCalls[dateGroup].push(call);
+    });
+    
+    // Trier les clés de date (oggi, ieri, dates)
+    const sortOrder = { 'oggi': 0, 'ieri': 1 };
+    const sortedKeys = Object.keys(groupedCalls).sort((a, b) => {
+        if (a in sortOrder && b in sortOrder) {
+            return sortOrder[a] - sortOrder[b];
+        } else if (a in sortOrder) {
+            return -1;
+        } else if (b in sortOrder) {
+            return 1;
+        } else {
+            // Pour les autres dates, trier du plus récent au plus ancien
+            const dateA = new Date(a.split('/').reverse().join('/'));
+            const dateB = new Date(b.split('/').reverse().join('/'));
+            return dateB - dateA;
+        }
+    });
+    
+    // Créer les sections par date
+    sortedKeys.forEach(dateGroup => {
+        // Ajouter le séparateur de section
+        const divider = document.createElement('li');
+        divider.className = 'divider';
+        divider.textContent = dateGroup;
+        contactList.appendChild(divider);
+        
+        // Trier les appels du plus récent au plus ancien au sein de chaque groupe
+        const sortedCalls = groupedCalls[dateGroup].sort((a, b) => {
+            return new Date(b.date) - new Date(a.date);
+        });
+        
+        // Ajouter les appels de cette section
+        sortedCalls.forEach(call => {
+            const callItem = document.createElement('li');
+            callItem.className = 'contact-item';
+            
+            // Déterminer les informations de contact
+            let displayName = '';
+            let displayType = '';
+            let phoneNumber = '';
+            
+            if (call.contactId) {
+                const contact = app.contacts.find(c => c.id === call.contactId);
+                if (contact) {
+                    if (contact.nom && contact.prenom) {
+                        displayName = `${contact.nom} ${contact.prenom}`;
+                    } else if (contact.nom) {
+                        displayName = contact.nom;
+                    } else if (contact.prenom) {
+                        displayName = contact.prenom;
+                    } else {
+                        displayName = contact.telephone;
+                    }
+                    displayType = contact.type || 'cellulare';
+                    phoneNumber = contact.telephone;
+                }
+            } else {
+                displayName = call.telephone || 'Numero sconosciuto';
+                displayType = 'sconosciuto';
+                phoneNumber = call.telephone || '';
+            }
+            
+            // Ajouter la classe pour les appels manqués
+            if (call.status === 'manqué') {
+                callItem.classList.add('missed-call');
+            }
+            
+            // Icône selon le type d'appel
+            let callIcon = '';
+            if (call.type === 'entrant') {
+                callIcon = '<i class="fas fa-phone-alt incoming"></i>';
+            } else if (call.type === 'sortant') {
+                callIcon = '<i class="fas fa-phone-alt outgoing"></i>';
+            } else {
+                callIcon = '<i class="fas fa-phone-alt"></i>';
+            }
+            
+            // Afficher le compteur d'appels si > 1
+            const countBadge = call.count > 1 ? `<span class="call-count">(${call.count})</span>` : '';
+            
+            callItem.innerHTML = `
+                <div class="contact-info">
+                    <div class="contact-name ${call.status === 'manqué' ? 'missed-call-text' : ''}">
+                        ${displayName} ${countBadge}
+                    </div>
+                    <div class="contact-phone">${displayType}</div>
+                </div>
+                <div class="contact-time">
+                    ${formatTime(call.date)} ${callIcon}
+                </div>
+            `;
+            
+            contactList.appendChild(callItem);
+            
+            // Ajouter l'événement pour afficher les détails du contact ou de l'appel
+            callItem.addEventListener('click', () => {
+                if (call.contactId) {
+                    showContactDetails(call.contactId);
+                } else if (phoneNumber) {
+                    // Créer un contact temporaire pour afficher les détails
+                    const tempContact = {
+                        id: 'temp',
+                        nom: '',
+                        prenom: '',
+                        telephone: phoneNumber,
+                        email: '',
+                        type: 'sconosciuto',
+                        pays: call.pays || 'Italia'
+                    };
+                    showContactDetailsFromObject(tempContact);
+                }
+            });
+        });
+    });
+}
+
+// Afficher les détails d'un contact
+function showContactDetails(contactId) {
+    const contact = app.contacts.find(c => c.id === contactId);
+    if (contact) {
+        showContactDetailsFromObject(contact);
+    }
+}
+
+// Afficher les détails d'un contact à partir d'un objet contact
+function showContactDetailsFromObject(contact) {
+    const detailView = document.getElementById('contactDetailView');
+    
+    // Déterminer le nom à afficher
+    let displayName = '';
+    if (contact.nom && contact.prenom) {
+        displayName = `${contact.nom} ${contact.prenom}`;
+    } else if (contact.nom) {
+        displayName = contact.nom;
+    } else if (contact.prenom) {
+        displayName = contact.prenom;
+    } else {
+        displayName = contact.telephone;
+    }
+    
+    // Mettre à jour les détails
+    document.getElementById('contactDetailName').textContent = displayName;
+    document.getElementById('phoneNumberDetail').querySelector('.data-value').textContent = contact.telephone;
+    
+    // Ajouter le pays si disponible
+    const countryElement = document.getElementById('countryDetail');
+    if (!countryElement) {
+        const newCountryElement = document.createElement('div');
+        newCountryElement.id = 'countryDetail';
+        newCountryElement.className = 'data-item';
+        newCountryElement.innerHTML = `
+            <div class="data-label">Pays</div>
+            <div class="data-value">${contact.pays || 'Italia'}</div>
         `;
-        
-        contactList.appendChild(contactItem);
-    });
+        document.querySelector('.data-section').appendChild(newCountryElement);
+    } else {
+        countryElement.querySelector('.data-value').textContent = contact.pays || 'Italia';
+    }
     
-    // Ajouter les gestionnaires d'événements aux boutons d'action
-    document.querySelectorAll('.call-btn').forEach(btn => {
-        btn.addEventListener('click', handleCall);
-    });
+    // Ajouter l'email si disponible
+    const emailElement = document.getElementById('emailDetail');
+    if (contact.email) {
+        if (!emailElement) {
+            const newEmailElement = document.createElement('div');
+            newEmailElement.id = 'emailDetail';
+            newEmailElement.className = 'data-item';
+            newEmailElement.innerHTML = `
+                <div class="data-label">Email</div>
+                <div class="data-value">${contact.email}</div>
+            `;
+            document.querySelector('.data-section').appendChild(newEmailElement);
+        } else {
+            emailElement.querySelector('.data-value').textContent = contact.email;
+            emailElement.style.display = 'flex';
+        }
+    } else if (emailElement) {
+        emailElement.style.display = 'none';
+    }
     
-    document.querySelectorAll('.edit-btn').forEach(btn => {
-        btn.addEventListener('click', handleEdit);
-    });
+    // Ajouter les gestionnaires d'événements pour les actions
+    document.querySelector('.message-btn').onclick = () => handleMessage(contact);
+    document.querySelector('.call-btn').onclick = () => handleCall(null, contact);
+    document.querySelector('.video-btn').onclick = () => handleVideoCall(contact);
+    document.querySelector('.mail-btn').onclick = () => handleEmail(contact);
+    document.querySelector('.share-btn').onclick = () => handleShare(contact);
+    document.querySelector('.add-fav-btn').onclick = () => handleAddToFavorites(contact);
+    document.querySelector('.add-emergency-btn').onclick = () => handleAddToEmergency(contact);
+    document.querySelector('.share-location-btn').onclick = () => handleShareLocation(contact);
+    document.querySelector('.block-btn').onclick = () => handleBlockContact(contact);
     
-    document.querySelectorAll('.delete-btn').forEach(btn => {
-        btn.addEventListener('click', handleDelete);
-    });
+    // Afficher la vue détaillée
+    detailView.style.display = 'flex';
+    
+    // Gestionnaire pour le bouton retour
+    document.getElementById('backToListBtn').onclick = () => {
+        detailView.style.display = 'none';
+    };
 }
 
 // Initialiser les gestionnaires d'événements
@@ -175,197 +771,42 @@ function initEventListeners() {
     document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
     
     // Recherche
-    document.getElementById('searchBtn').addEventListener('click', handleSearch);
     document.getElementById('searchInput').addEventListener('input', handleSearch);
-
-    // Utilisation de FastClick pour éliminer le délai de 300ms sur les appareils mobiles
-    if ('addEventListener' in document) {
-        document.addEventListener('DOMContentLoaded', function() {
-            if (typeof FastClick !== 'undefined') {
-                FastClick.attach(document.body);
+    
+    // Onglets de navigation
+    document.querySelectorAll('.tab-button').forEach((tab, index) => {
+        tab.addEventListener('click', () => {
+            document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
+            tab.classList.add('active');
+            
+            // Changer de vue selon l'onglet
+            switch (index) {
+                case 0: // Favoris
+                    switchView('favorites');
+                    break;
+                case 1: // Récents
+                    switchView('recents');
+                    break;
+                case 2: // Contacts
+                    switchView('contacts');
+                    break;
+                case 3: // Clavier
+                    switchView('keypad');
+                    break;
+                case 4: // Messagerie
+                    switchView('voicemail');
+                    break;
             }
-        }, false);
-    }
-}
-
-// Générer l'index alphabétique
-function generateAlphabetIndex() {
-    const alphabetIndex = document.getElementById('alphabetIndex');
-    const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
-    
-    for (let i = 0; i < alphabet.length; i++) {
-        const letter = document.createElement('div');
-        letter.className = 'letter';
-        letter.textContent = alphabet[i];
-        letter.addEventListener('click', () => filterByLetter(alphabet[i]));
-        alphabetIndex.appendChild(letter);
-    }
-}
-
-// Filtrer les contacts par lettre
-function filterByLetter(letter) {
-    document.querySelectorAll('.letter').forEach(el => {
-        el.classList.remove('active');
+        });
     });
     
-    event.target.classList.add('active');
-    
-    const filteredContacts = app.contacts.filter(contact => {
-        const firstLetter = contact.nom.charAt(0).toUpperCase();
-        return firstLetter === letter;
+    // Bouton retour
+    document.querySelector('.back-button').addEventListener('click', () => {
+        switchView('recents');
     });
     
-    displayContacts(filteredContacts);
-}
-
-// Gérer la soumission du formulaire de contact
-function handleContactFormSubmit(event) {
-    event.preventDefault();
-    
-    const contactId = document.getElementById('contactId').value;
-    const nom = document.getElementById('nom').value.trim();
-    const prenom = document.getElementById('prenom').value.trim();
-    const telephone = document.getElementById('telephone').value.trim();
-    const email = document.getElementById('email').value.trim();
-    
-    if (!nom || !prenom || !telephone) {
-        alert('Veuillez remplir tous les champs obligatoires');
-        return;
-    }
-    
-    if (contactId) {
-        // Modification d'un contact existant
-        const contactIndex = app.contacts.findIndex(c => c.id === contactId);
-        if (contactIndex !== -1) {
-            app.contacts[contactIndex] = {
-                id: contactId,
-                nom,
-                prenom,
-                telephone,
-                email
-            };
-        }
-    } else {
-        // Ajout d'un nouveau contact
-        const newContact = {
-            id: Date.now().toString(),
-            nom,
-            prenom,
-            telephone,
-            email
-        };
-        app.contacts.push(newContact);
-    }
-    
-    // Enregistrer et actualiser
-    saveContacts();
-    loadContacts();
-    closeModal('contactModal');
-}
-
-// Gérer l'appel d'un contact
-function handleCall(event) {
-    const contactId = event.currentTarget.dataset.id;
-    const contact = app.contacts.find(c => c.id === contactId);
-    
-    if (contact) {
-        // Utiliser le plugin cordova pour appeler (plus fiable que l'URL tel:)
-        if (app.isReady && typeof navigator.tel !== 'undefined' && navigator.tel.dial) {
-            navigator.tel.dial(contact.telephone, 
-                function() { console.log('Appel réussi'); },
-                function() { console.log('Échec de l\'appel'); }
-            );
-        } else {
-            // Fallback sur la méthode standard
-            window.location.href = `tel:${contact.telephone}`;
-        }
-    }
-}
-
-// Gérer la modification d'un contact
-function handleEdit(event) {
-    const contactId = event.currentTarget.dataset.id;
-    const contact = app.contacts.find(c => c.id === contactId);
-    
-    if (contact) {
-        document.getElementById('modalTitle').textContent = 'Modifier le contact';
-        document.getElementById('contactId').value = contact.id;
-        document.getElementById('nom').value = contact.nom;
-        document.getElementById('prenom').value = contact.prenom;
-        document.getElementById('telephone').value = contact.telephone;
-        document.getElementById('email').value = contact.email || '';
-        
-        openModal('contactModal');
-    }
-}
-
-// Gérer la suppression d'un contact
-function handleDelete(event) {
-    const contactId = event.currentTarget.dataset.id;
-    app.currentContactId = contactId;
-    
-    openModal('deleteModal');
-}
-
-// Confirmer la suppression d'un contact
-function confirmDelete() {
-    if (app.currentContactId) {
-        app.contacts = app.contacts.filter(c => c.id !== app.currentContactId);
-        saveContacts();
-        loadContacts();
-        closeModal('deleteModal');
-        app.currentContactId = null;
-    }
-}
-
-// Gérer la recherche de contacts
-function handleSearch() {
-    const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-    
-    if (!searchTerm) {
-        loadContacts();
-        return;
-    }
-    
-    const filteredContacts = app.contacts.filter(contact => {
-        const fullName = `${contact.nom} ${contact.prenom}`.toLowerCase();
-        const phone = contact.telephone.toLowerCase();
-        const email = (contact.email || '').toLowerCase();
-        
-        return fullName.includes(searchTerm) || 
-               phone.includes(searchTerm) || 
-               email.includes(searchTerm);
+    // Bouton retour de la vue détaillée
+    document.getElementById('backToListBtn').addEventListener('click', () => {
+        document.getElementById('contactDetailView').style.display = 'none';
     });
-    
-    displayContacts(filteredContacts);
-}
-
-// Ouvrir une modal avec animation
-function openModal(modalId) {
-    const modal = document.getElementById(modalId);
-    modal.style.display = 'block';
-    
-    // Animation facultative
-    setTimeout(() => {
-        modal.querySelector('.modal-content').style.opacity = '1';
-        modal.querySelector('.modal-content').style.transform = 'translateY(0)';
-    }, 10);
-}
-
-// Fermer une modal avec animation
-function closeModal(modalId) {
-    const modal = document.getElementById(modalId);
-    
-    // Animation de fermeture
-    const content = modal.querySelector('.modal-content');
-    content.style.opacity = '0';
-    content.style.transform = 'translateY(20px)';
-    
-    // Attendre la fin de l'animation avant de cacher la modal
-    setTimeout(() => {
-        modal.style.display = 'none';
-        // Réinitialiser les styles pour la prochaine ouverture
-        content.style.opacity = '';
-        content.style.transform = '';
-    }, 300);
 }
