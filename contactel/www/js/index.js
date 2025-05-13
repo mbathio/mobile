@@ -1,841 +1,710 @@
-// Attendre que Cordova soit complètement chargé
+// Variable globale pour stocker le contact actuellement sélectionné
+let currentContact = null;
+
+// Attendre que l'appareil soit prêt
 document.addEventListener('deviceready', onDeviceReady, false);
 
-// État global de l'application
-const app = {
-    contacts: [],
-    recentCalls: [],
-    currentContactId: null,
-    currentView: 'recents', // 'recents', 'contacts', 'favorites', 'keypad', 'voicemail'
-    isReady: false
-};
+// Fallback pour le développement dans le navigateur
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof cordova === 'undefined') {
+        onDeviceReady();
+    }
+});
 
-// Initialisation après le chargement de Cordova
 function onDeviceReady() {
-    console.log('Running cordova-' + cordova.platformId + '@' + cordova.version);
+    console.log('Application ContactEl prête!');
     
-    // Marquer l'application comme prête
-    app.isReady = true;
+    // Initialiser les contacts de démonstration s'ils n'existent pas
+    initDemoContacts();
     
-    // Ajouter les écouteurs d'événements pour la plateforme mobile
-    document.addEventListener('pause', onPause, false);
-    document.addEventListener('resume', onResume, false);
-    document.addEventListener('backbutton', onBackButton, false);
+    // Charger la liste des contacts
+    loadContactList();
     
-    // Mettre à jour l'heure dans la barre de statut
-    updateStatusBarTime();
+    // Gérer la recherche
+    $('#search-input').on('input', function() {
+        const searchTerm = $(this).val().toLowerCase();
+        filterContacts(searchTerm);
+    });
     
-    // Mettre à jour l'heure toutes les minutes
-    setInterval(updateStatusBarTime, 60000);
-    
-    // Charger les contacts et les appels récents depuis le stockage local
-    loadContacts();
-    loadRecentCalls();
-    
-    // Initialiser les gestionnaires d'événements
-    initEventListeners();
-    
-    // Générer l'index alphabétique
-    generateAlphabetIndex();
-    
-    // Afficher la vue initiale (récents par défaut)
-    switchView('recents');
-}
-
-// Mettre à jour l'heure dans la barre de statut
-function updateStatusBarTime() {
-    const now = new Date();
-    const hours = now.getHours().toString().padStart(2, '0');
-    const minutes = now.getMinutes().toString().padStart(2, '0');
-    document.querySelector('.status-bar-time').textContent = `${hours}:${minutes}`;
-}
-
-// Gérer l'événement pause (application en arrière-plan)
-function onPause() {
-    console.log('Application mise en pause');
-    // Sauvegarder l'état si nécessaire
-    saveContacts();
-    saveRecentCalls();
-}
-
-// Gérer l'événement resume (retour au premier plan)
-function onResume() {
-    console.log('Application reprise');
-    // Rafraîchir les données si nécessaire
-    loadContacts();
-    loadRecentCalls();
-    updateStatusBarTime();
-}
-
-// Gérer le bouton retour sur Android
-function onBackButton(e) {
-    // Si une modal est ouverte, la fermer au lieu de quitter l'application
-    if (document.getElementById('contactModal').style.display === 'block') {
-        closeModal('contactModal');
+    // Gestionnaires d'événements pour les formulaires
+    $('#add-form').on('submit', function(e) {
         e.preventDefault();
-        return false;
-    }
+        addContact();
+    });
     
-    if (document.getElementById('deleteModal').style.display === 'block') {
-        closeModal('deleteModal');
+    $('#edit-form').on('submit', function(e) {
         e.preventDefault();
-        return false;
-    }
+        updateContact();
+    });
     
-    // Si la vue détaillée est ouverte, revenir à la liste
-    if (document.getElementById('contactDetailView').style.display === 'flex') {
-        document.getElementById('contactDetailView').style.display = 'none';
-        e.preventDefault();
-        return false;
-    }
+    // Gestionnaire pour le bouton de suppression
+    $('#delete-btn').on('click', function() {
+        confirmAndDeleteContact();
+    });
     
-    // Sinon, confirmer la sortie de l'application
-    if (confirm('Voulez-vous quitter l\'application ?')) {
-        navigator.app.exitApp();
-    } else {
-        e.preventDefault();
-        return false;
+    // Gestionnaire pour les boutons d'action
+    $('#call-btn').on('click', function() {
+        if (currentContact && currentContact.phone) {
+            window.location.href = 'tel:' + currentContact.phone;
+        }
+    });
+    
+    $('#sms-btn').on('click', function() {
+        if (currentContact && currentContact.phone) {
+            window.location.href = 'sms:' + currentContact.phone;
+        }
+    });
+    
+    $('#email-btn').on('click', function() {
+        if (currentContact && currentContact.email) {
+            window.location.href = 'mailto:' + currentContact.email;
+        }
+    });
+    
+    // Mise à jour de la prévisualisation des images de profil
+    $('#profile-select').on('change', function() {
+        updateProfilePreview('profile-preview', $(this).val());
+    });
+    
+    $('#edit-profile-select').on('change', function() {
+        updateProfilePreview('edit-profile-preview', $(this).val());
+    });
+    
+    // Événements pour gérer la navigation entre les pages
+    $(document).on('pagebeforeshow', '#details-page', function() {
+        if (currentContact) {
+            displayContactDetails();
+        }
+    });
+    
+    $(document).on('pagebeforeshow', '#edit-page', function() {
+        if (currentContact) {
+            populateEditForm();
+        }
+    });
+}
+
+// Initialiser les contacts de démonstration
+function initDemoContacts() {
+    if (!localStorage.getItem('contacts')) {
+        const demoContacts = [
+            {
+                id: generateId(),
+                name: 'Bachir Diallo',
+                phone: '70 123 45 67',
+                email: 'bachir.diallo@example.com',
+                address: 'Dakar, Sénégal',
+                photo: 'Bachir Diallo.png',
+                group: 'travail'
+            },
+            {
+                id: generateId(),
+                name: 'Nabou Gueye',
+                phone: '77 456 78 90',
+                email: 'nabou.gueye@example.com',
+                address: 'Thiès, Sénégal',
+                photo: 'Nabou Gueye.png',
+                group: 'famille'
+            },
+            {
+                id: generateId(),
+                name: 'Samba Sall',
+                phone: '76 234 56 78',
+                email: 'samba.sall@example.com',
+                address: 'Saint-Louis, Sénégal',
+                photo: 'Samba Sall.png',
+                group: 'amis'
+            },
+            {
+                id: generateId(),
+                name: 'Zahra Aidara',
+                phone: '78 567 89 01',
+                email: 'zahra.aidara@example.com',
+                address: 'Kaolack, Sénégal',
+                photo: 'zahra aidara.png',
+                group: 'travail'
+            }
+        ];
+        
+        localStorage.setItem('contacts', JSON.stringify(demoContacts));
     }
 }
 
-// Charger les contacts depuis le stockage local
-function loadContacts() {
-    const savedContacts = localStorage.getItem('contacts');
-    app.contacts = savedContacts ? JSON.parse(savedContacts) : [];
+// Charger et afficher la liste des contacts
+function loadContactList() {
+    const contacts = getContacts();
+    const $contactList = $('#contact-list');
     
-    // Si aucun contact n'existe, créer des contacts de démonstration
-    if (app.contacts.length === 0) {
-        createDemoContacts();
+    // Vider la liste
+    $contactList.empty();
+    
+    if (contacts.length === 0) {
+        $contactList.html('<li class="empty-list"><p>Aucun contact trouvé. Ajoutez votre premier contact!</p></li>');
+        return;
     }
     
     // Trier les contacts par nom
-    app.contacts.sort((a, b) => {
-        const nameA = `${a.nom} ${a.prenom}`.toLowerCase();
-        const nameB = `${b.nom} ${b.prenom}`.toLowerCase();
-        return nameA.localeCompare(nameB);
-    });
+    contacts.sort((a, b) => a.name.localeCompare(b.name));
     
-    // Afficher les contacts si on est dans cette vue
-    if (app.currentView === 'contacts') {
-        displayContacts();
-    }
-}
-
-// Créer des contacts de démonstration
-function createDemoContacts() {
-    app.contacts = [
-        {
-            id: '1',
-            nom: 'Francescon',
-            prenom: 'Alberto',
-            telephone: '+39 351 5289817',
-            email: 'alberto@example.com',
-            type: 'mobile',
-            pays: 'France'
-        },
-        {
-            id: '2',
-            nom: 'Kalpi',
-            prenom: '',
-            telephone: '+39 351 1234567',
-            email: 'kalpi@example.com',
-            type: 'mobile',
-            pays: 'France'
-        },
-        {
-            id: '3',
-            nom: 'Kalpi',
-            prenom: 'Maman',
-            telephone: '+39 351 7654321',
-            email: 'maman.kalpi@example.com',
-            type: 'mobile',
-            pays: 'France'
-        },
-        {
-            id: '4',
-            nom: 'Mauro',
-            prenom: 'Brini',
-            telephone: '+39 351 9876543',
-            email: 'brini.mauro@example.com',
-            type: 'mobile',
-            pays: 'France'
-        },
-        {
-            id: '5',
-            nom: 'Enrico',
-            prenom: 'Cervo',
-            telephone: '+39 351 3456789',
-            email: 'cervo.enrico@example.com',
-            type: 'mobile',
-            pays: 'France'
-        },
-        {
-            id: '6',
-            nom: 'Clf Nettoyage',
-            prenom: 'Elida',
-            telephone: '+39 351 8765432',
-            email: 'elida@clfnettoyage.fr',
-            type: 'téléphone',
-            pays: 'France'
-        },
-        {
-            id: '7',
-            nom: '',
-            prenom: '',
-            telephone: '+39 0437 950437',
-            email: '',
-            type: 'inconnu',
-            pays: 'Paris, France'
-        },
-        {
-            id: '8',
-            nom: '',
-            prenom: '',
-            telephone: '347 4634881',
-            email: '',
-            type: 'inconnu',
-            pays: 'France'
-        }
-    ];
-    saveContacts();
-}
-
-// Charger les appels récents depuis le stockage local
-function loadRecentCalls() {
-    const savedCalls = localStorage.getItem('recentCalls');
-    app.recentCalls = savedCalls ? JSON.parse(savedCalls) : [];
-    
-    // Si aucun appel récent n'existe, créer des appels de démonstration
-    if (app.recentCalls.length === 0) {
-        createDemoRecentCalls();
-    }
-    
-    // Afficher les appels récents si on est dans cette vue
-    if (app.currentView === 'recents') {
-        displayRecentCalls();
-    }
-}
-
-// Créer des appels récents de démonstration
-function createDemoRecentCalls() {
-    const now = new Date();
-    const yesterday = new Date(now);
-    yesterday.setDate(now.getDate() - 1);
-    
-    app.recentCalls = [
-        {
-            id: '1',
-            contactId: '1', // Alberto Francescon
-            date: yesterday,
-            duration: '01:04',
-            type: 'entrant',
-            status: 'répondu',
-            count: 4
-        },
-        {
-            id: '2',
-            contactId: '2', // Kalpi
-            date: yesterday,
-            duration: '00:00',
-            type: 'sortant',
-            status: 'manqué',
-            count: 1
-        },
-        {
-            id: '3',
-            contactId: null,
-            telephone: 'Numéro inconnu',
-            type: 'inconnu',
-            date: yesterday,
-            duration: '00:00',
-            status: 'manqué',
-            count: 1
-        },
-        {
-            id: '4',
-            contactId: null,
-            telephone: 'Numéro inconnu',
-            type: 'inconnu',
-            date: yesterday,
-            duration: '00:00',
-            status: 'manqué',
-            count: 1
-        },
-        {
-            id: '5',
-            contactId: '1', // Alberto Francescon
-            date: yesterday,
-            duration: '00:23',
-            type: 'entrant',
-            status: 'répondu',
-            count: 2
-        },
-        {
-            id: '6',
-            contactId: '6', // Elida Clf Nettoyage
-            date: yesterday,
-            duration: '03:15',
-            type: 'sortant',
-            status: 'répondu',
-            count: 1
-        },
-        {
-            id: '7',
-            contactId: '4', // Brini Mauro
-            date: yesterday,
-            duration: '01:42',
-            type: 'entrant',
-            status: 'répondu',
-            count: 1
-        },
-        {
-            id: '8',
-            contactId: '3', // Maman Kalpi
-            date: yesterday,
-            duration: '05:11',
-            type: 'entrant',
-            status: 'répondu',
-            count: 1
-        },
-        {
-            id: '9',
-            contactId: '5', // Cervo Enrico
-            date: yesterday,
-            duration: '00:47',
-            type: 'sortant',
-            status: 'répondu',
-            count: 1
-        },
-        {
-            id: '10',
-            contactId: '7', // +39 0437 950437
-            date: yesterday,
-            duration: '02:18',
-            type: 'entrant',
-            status: 'répondu',
-            count: 1
-        },
-        {
-            id: '11',
-            contactId: '8', // 347 4634881
-            date: now,
-            duration: '00:00',
-            type: 'sortant',
-            status: 'annulé',
-            count: 1
-        }
-    ];
-    saveRecentCalls();
-}
-
-// Enregistrer les contacts dans le stockage local
-function saveContacts() {
-    localStorage.setItem('contacts', JSON.stringify(app.contacts));
-}
-
-// Enregistrer les appels récents dans le stockage local
-function saveRecentCalls() {
-    localStorage.setItem('recentCalls', JSON.stringify(app.recentCalls));
-}
-
-// Formater la date en style iOS (aujourd'hui, hier, date)
-function formatDate(date) {
-    const now = new Date();
-    const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const yesterday = new Date(today);
-    yesterday.setDate(yesterday.getDate() - 1);
-    
-    const inputDate = new Date(date);
-    const inputDay = new Date(inputDate.getFullYear(), inputDate.getMonth(), inputDate.getDate());
-    
-    if (inputDay.getTime() === today.getTime()) {
-        return 'aujourd\'hui';
-    } else if (inputDay.getTime() === yesterday.getTime()) {
-        return 'hier';
-    } else {
-        const day = inputDate.getDate().toString().padStart(2, '0');
-        const month = (inputDate.getMonth() + 1).toString().padStart(2, '0');
-        const year = inputDate.getFullYear();
-        return `${day}/${month}/${year}`;
-    }
-}
-
-// Formater l'heure en style iOS
-function formatTime(date) {
-    const inputDate = new Date(date);
-    const hours = inputDate.getHours().toString().padStart(2, '0');
-    const minutes = inputDate.getMinutes().toString().padStart(2, '0');
-    return `${hours}:${minutes}`;
-}
-
-// Afficher les contacts dans la liste
-function displayContacts(filteredContacts = null) {
-    const contactList = document.getElementById('contactList');
-    contactList.innerHTML = '';
-    
-    // Changer le titre et les boutons selon la vue
-    document.querySelector('.nav-bar .back-button').innerHTML = '<i class="fas fa-chevron-left"></i> Récents';
-    document.querySelector('.nav-bar .back-button').style.visibility = 'visible';
-    document.querySelector('.nav-bar .actions-container').innerHTML = `
-        <button id="addContactBtn" class="add-button">
-            <i class="fas fa-plus"></i>
-        </button>
-    `;
-    document.getElementById('addContactBtn').addEventListener('click', () => {
-        document.getElementById('modalTitle').textContent = 'Ajouter un contact';
-        document.getElementById('contactId').value = '';
-        document.getElementById('contactForm').reset();
-        openModal('contactModal');
-    });
-    
-    const contactsToDisplay = filteredContacts || app.contacts;
-    
-    if (contactsToDisplay.length === 0) {
-        contactList.innerHTML = '<li class="contact-item">Aucun contact trouvé</li>';
-        return;
-    }
-    
-    // Regrouper les contacts par première lettre
-    const groupedContacts = {};
-    contactsToDisplay.forEach(contact => {
-        // Utiliser le nom ou le prénom comme clé de tri
-        const displayName = contact.nom || contact.prenom;
-        if (!displayName) {
-            // Si pas de nom ni prénom, mettre dans "?"
-            const firstLetter = "?";
-            if (!groupedContacts[firstLetter]) {
-                groupedContacts[firstLetter] = [];
-            }
-            groupedContacts[firstLetter].push(contact);
-            return;
-        }
-        
-        const firstLetter = displayName.charAt(0).toUpperCase();
-        if (!groupedContacts[firstLetter]) {
-            groupedContacts[firstLetter] = [];
-        }
-        groupedContacts[firstLetter].push(contact);
-    });
-    
-    // Trier les clés alphabétiquement
-    const sortedKeys = Object.keys(groupedContacts).sort();
-    
-    // Créer les sections par lettre
-    sortedKeys.forEach(letter => {
-        // Ajouter le séparateur de section
-        const divider = document.createElement('li');
-        divider.className = 'divider';
-        divider.textContent = letter;
-        contactList.appendChild(divider);
-        
-        // Ajouter les contacts de cette section
-        groupedContacts[letter].forEach(contact => {
-            const contactItem = document.createElement('li');
-            contactItem.className = 'contact-item';
-            contactItem.dataset.id = contact.id;
-            
-            // Déterminer le nom à afficher
-            let displayName = '';
-            if (contact.nom && contact.prenom) {
-                displayName = `${contact.nom} ${contact.prenom}`;
-            } else if (contact.nom) {
-                displayName = contact.nom;
-            } else if (contact.prenom) {
-                displayName = contact.prenom;
-            } else {
-                displayName = contact.telephone;
-            }
-            
-            // Type d'appareil (mobile, téléphone, etc.)
-            const deviceType = contact.type || 'mobile';
-            
-            contactItem.innerHTML = `
-                <div class="contact-info">
-                    <div class="contact-name">${displayName}</div>
-                    <div class="contact-phone">${deviceType}</div>
-                </div>
-                <div class="contact-actions">
-                    <button class="info-btn" data-id="${contact.id}">
-                        <i class="fas fa-info-circle"></i>
-                    </button>
-                </div>
-            `;
-            
-            contactList.appendChild(contactItem);
-            
-            // Ajouter l'événement pour afficher les détails du contact
-            contactItem.addEventListener('click', () => {
-                showContactDetails(contact.id);
-            });
-        });
-    });
-    
-    // Réattacher les gestionnaires d'événements pour les boutons d'info
-    document.querySelectorAll('.info-btn').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            e.stopPropagation();
-            const contactId = btn.dataset.id;
-            showContactDetails(contactId);
-        });
-    });
-}
-
-// Afficher les appels récents
-function displayRecentCalls(filteredCalls = null) {
-    const contactList = document.getElementById('contactList');
-    contactList.innerHTML = '';
-    
-    // Changer le titre et les boutons selon la vue
-    document.querySelector('.nav-bar .back-button').style.visibility = 'hidden';
-    document.querySelector('.nav-bar .actions-container').innerHTML = `
-        <button id="editCallsBtn" class="edit-button">
-            Modifier
-        </button>
-    `;
-    document.getElementById('editCallsBtn').addEventListener('click', () => {
-        // Logique pour éditer les appels récents
-        alert('Fonction d\'édition non implémentée');
-    });
-    
-    // Ajouter les onglets de filtre (Tous, Manqués)
-    const filterTabs = document.createElement('div');
-    filterTabs.className = 'filter-tabs';
-    filterTabs.innerHTML = `
-        <button class="filter-tab active">Tous</button>
-        <button class="filter-tab">Manqués</button>
-    `;
-    contactList.parentNode.insertBefore(filterTabs, contactList);
-    
-    // Gestionnaires d'événements pour les onglets
-    document.querySelectorAll('.filter-tab').forEach(tab => {
-        tab.addEventListener('click', (e) => {
-            document.querySelectorAll('.filter-tab').forEach(t => t.classList.remove('active'));
-            e.target.classList.add('active');
-            
-            // Filtrer les appels selon l'onglet
-            if (e.target.textContent === 'Manqués') {
-                const missedCalls = app.recentCalls.filter(call => call.status === 'manqué');
-                displayRecentCalls(missedCalls);
-            } else {
-                displayRecentCalls();
-            }
-        });
-    });
-    
-    const callsToDisplay = filteredCalls || app.recentCalls;
-    
-    if (callsToDisplay.length === 0) {
-        contactList.innerHTML = '<li class="contact-item">Aucun appel récent</li>';
-        return;
-    }
-    
-    // Regrouper les appels par date
-    const groupedCalls = {};
-    callsToDisplay.forEach(call => {
-        const dateGroup = formatDate(call.date);
-        if (!groupedCalls[dateGroup]) {
-            groupedCalls[dateGroup] = [];
-        }
-        groupedCalls[dateGroup].push(call);
-    });
-    
-    // Trier les clés de date (aujourd'hui, hier, dates)
-    const sortOrder = { 'aujourd\'hui': 0, 'hier': 1 };
-    const sortedKeys = Object.keys(groupedCalls).sort((a, b) => {
-        if (a in sortOrder && b in sortOrder) {
-            return sortOrder[a] - sortOrder[b];
-        } else if (a in sortOrder) {
-            return -1;
-        } else if (b in sortOrder) {
-            return 1;
-        } else {
-            // Pour les autres dates, trier du plus récent au plus ancien
-            const dateA = new Date(a.split('/').reverse().join('/'));
-            const dateB = new Date(b.split('/').reverse().join('/'));
-            return dateB - dateA;
-        }
-    });
-    
-    // Créer les sections par date
-    sortedKeys.forEach(dateGroup => {
-        // Ajouter le séparateur de section
-        const divider = document.createElement('li');
-        divider.className = 'divider';
-        divider.textContent = dateGroup;
-        contactList.appendChild(divider);
-        
-        // Trier les appels du plus récent au plus ancien au sein de chaque groupe
-        const sortedCalls = groupedCalls[dateGroup].sort((a, b) => {
-            return new Date(b.date) - new Date(a.date);
-        });
-        
-        // Ajouter les appels de cette section
-        sortedCalls.forEach(call => {
-            const callItem = document.createElement('li');
-            callItem.className = 'contact-item';
-            
-            // Déterminer les informations de contact
-            let displayName = '';
-            let displayType = '';
-            let phoneNumber = '';
-            
-            if (call.contactId) {
-                const contact = app.contacts.find(c => c.id === call.contactId);
-                if (contact) {
-                    if (contact.nom && contact.prenom) {
-                        displayName = `${contact.nom} ${contact.prenom}`;
-                    } else if (contact.nom) {
-                        displayName = contact.nom;
-                    } else if (contact.prenom) {
-                        displayName = contact.prenom;
-                    } else {
-                        displayName = contact.telephone;
-                    }
-                    displayType = contact.type || 'mobile';
-                    phoneNumber = contact.telephone;
-                }
-            } else {
-                displayName = call.telephone || 'Numéro inconnu';
-                displayType = 'inconnu';
-                phoneNumber = call.telephone || '';
-            }
-            
-            // Ajouter la classe pour les appels manqués
-            if (call.status === 'manqué') {
-                callItem.classList.add('missed-call');
-            }
-            
-            // Icône selon le type d'appel
-            let callIcon = '';
-            if (call.type === 'entrant') {
-                callIcon = '<i class="fas fa-phone-alt incoming"></i>';
-            } else if (call.type === 'sortant') {
-                callIcon = '<i class="fas fa-phone-alt outgoing"></i>';
-            } else {
-                callIcon = '<i class="fas fa-phone-alt"></i>';
-            }
-            
-            // Afficher le compteur d'appels si > 1
-            const countBadge = call.count > 1 ? `<span class="call-count">(${call.count})</span>` : '';
-            
-            callItem.innerHTML = `
-                <div class="contact-info">
-                    <div class="contact-name ${call.status === 'manqué' ? 'missed-call-text' : ''}">
-                        ${displayName} ${countBadge}
+    // Ajouter chaque contact à la liste
+    contacts.forEach(contact => {
+        const $item = $(`
+            <li>
+                <a href="#details-page" class="contact-item" data-id="${contact.id}">
+                    <img src="img/${contact.photo || 'logo.png'}" alt="${contact.name}" class="contact-avatar">
+                    <div class="contact-info">
+                        <h2>${contact.name}</h2>
+                        <p>${contact.phone}</p>
+                        <span class="contact-group ${contact.group}">${contact.group}</span>
                     </div>
-                    <div class="contact-phone">${displayType}</div>
-                </div>
-                <div class="contact-time">
-                    ${formatTime(call.date)} ${callIcon}
-                </div>
-            `;
-            
-            contactList.appendChild(callItem);
-            
-            // Ajouter l'événement pour afficher les détails du contact ou de l'appel
-            callItem.addEventListener('click', () => {
-                if (call.contactId) {
-                    showContactDetails(call.contactId);
-                } else if (phoneNumber) {
-                    // Créer un contact temporaire pour afficher les détails
-                    const tempContact = {
-                        id: 'temp',
-                        nom: '',
-                        prenom: '',
-                        telephone: phoneNumber,
-                        email: '',
-                        type: 'inconnu',
-                        pays: call.pays || 'France'
-                    };
-                    showContactDetailsFromObject(tempContact);
-                }
-            });
-        });
+                </a>
+            </li>
+        `);
+        
+        $contactList.append($item);
+    });
+    
+    // Rafraîchir la liste pour appliquer le style jQuery Mobile
+    if ($contactList.hasClass('ui-listview')) {
+        $contactList.listview('refresh');
+    }
+    
+    // Gestionnaire d'événements pour la sélection d'un contact
+    $('.contact-item').on('click', function() {
+        const contactId = $(this).data('id');
+        currentContact = getContactById(contactId);
+    });
+}
+
+// Filtrer les contacts en fonction du terme de recherche
+function filterContacts(searchTerm) {
+    const contacts = getContacts();
+    const $contactList = $('#contact-list');
+    
+    // Vider la liste
+    $contactList.empty();
+    
+    // Filtrer les contacts
+    const filteredContacts = contacts.filter(contact => 
+        contact.name.toLowerCase().includes(searchTerm) || 
+        contact.phone.includes(searchTerm) ||
+        (contact.email && contact.email.toLowerCase().includes(searchTerm))
+    );
+    
+    if (filteredContacts.length === 0) {
+        $contactList.html('<li class="empty-list"><p>Aucun contact trouvé</p></li>');
+        return;
+    }
+    
+    // Ajouter les contacts filtrés à la liste
+    filteredContacts.forEach(contact => {
+        const $item = $(`
+            <li>
+                <a href="#details-page" class="contact-item" data-id="${contact.id}">
+                    <img src="img/${contact.photo || 'logo.png'}" alt="${contact.name}" class="contact-avatar">
+                    <div class="contact-info">
+                        <h2>${contact.name}</h2>
+                        <p>${contact.phone}</p>
+                        <span class="contact-group ${contact.group}">${contact.group}</span>
+                    </div>
+                </a>
+            </li>
+        `);
+        
+        $contactList.append($item);
+    });
+    
+    // Rafraîchir la liste
+    if ($contactList.hasClass('ui-listview')) {
+        $contactList.listview('refresh');
+    }
+    
+    // Réattacher les gestionnaires d'événements
+    $('.contact-item').on('click', function() {
+        const contactId = $(this).data('id');
+        currentContact = getContactById(contactId);
     });
 }
 
 // Afficher les détails d'un contact
-function showContactDetails(contactId) {
-    const contact = app.contacts.find(c => c.id === contactId);
-    if (contact) {
-        showContactDetailsFromObject(contact);
+function displayContactDetails() {
+    if (!currentContact) return;
+    
+    const $detailsContainer = $('#contact-details');
+    
+    $detailsContainer.html(`
+        <img src="img/${currentContact.photo || 'logo.png'}" alt="${currentContact.name}" class="avatar">
+        <h2>${currentContact.name}</h2>
+        <span class="group-badge ${currentContact.group}">${currentContact.group}</span>
+        
+        <div class="info-card">
+            <div class="label">Téléphone</div>
+            <div class="value">${currentContact.phone}</div>
+        </div>
+        
+        <div class="info-card">
+            <div class="label">Email</div>
+            <div class="value">${currentContact.email || 'Non renseigné'}</div>
+        </div>
+        
+        <div class="info-card">
+            <div class="label">Adresse</div>
+            <div class="value">${currentContact.address || 'Non renseignée'}</div>
+        </div>
+    `);
+    
+    // Désactiver le bouton d'email si non disponible
+    if (!currentContact.email) {
+        $('#email-btn').addClass('ui-state-disabled');
+    } else {
+        $('#email-btn').removeClass('ui-state-disabled');
     }
 }
 
-// Afficher les détails d'un contact à partir d'un objet contact
-function showContactDetailsFromObject(contact) {
-    const detailView = document.getElementById('contactDetailView');
-    
-    // Déterminer le nom à afficher
-    let displayName = '';
-    if (contact.nom && contact.prenom) {
-        displayName = `${contact.nom} ${contact.prenom}`;
-    } else if (contact.nom) {
-        displayName = contact.nom;
-    } else if (contact.prenom) {
-        displayName = contact.prenom;
-    } else {
-        displayName = contact.telephone;
-    }
-    
-    // Mettre à jour les détails
-    document.getElementById('contactDetailName').textContent = displayName;
-    document.getElementById('phoneNumberDetail').querySelector('.data-value').textContent = contact.telephone;
-    
-    // Ajouter le pays si disponible
-    const countryElement = document.getElementById('countryDetail');
-    if (!countryElement) {
-        const newCountryElement = document.createElement('div');
-        newCountryElement.id = 'countryDetail';
-        newCountryElement.className = 'data-item';
-        newCountryElement.innerHTML = `
-            <div class="data-label">Pays</div>
-            <div class="data-value">${contact.pays || 'France'}</div>
-        `;
-        document.querySelector('.data-section').appendChild(newCountryElement);
-    } else {
-        countryElement.querySelector('.data-value').textContent = contact.pays || 'France';
-    }
-    
-    // Ajouter l'email si disponible
-    const emailElement = document.getElementById('emailDetail');
-    if (contact.email) {
-        if (!emailElement) {
-            const newEmailElement = document.createElement('div');
-            newEmailElement.id = 'emailDetail';
-            newEmailElement.className = 'data-item';
-            newEmailElement.innerHTML = `
-                <div class="data-label">Email</div>
-                <div class="data-value">${contact.email}</div>
-            `;
-            document.querySelector('.data-section').appendChild(newEmailElement);
-        } else {
-            emailElement.querySelector('.data-value').textContent = contact.email;
-            emailElement.style.display = 'flex';
-        }
-    } else if (emailElement) {
-        emailElement.style.display = 'none';
-    }
-    
-    // Ajouter les gestionnaires d'événements pour les actions
-    document.querySelector('.message-btn').onclick = () => handleMessage(contact);
-    document.querySelector('.call-btn').onclick = () => handleCall(null, contact);
-    document.querySelector('.video-btn').onclick = () => handleVideoCall(contact);
-    document.querySelector('.mail-btn').onclick = () => handleEmail(contact);
-    document.querySelector('.share-btn').onclick = () => handleShare(contact);
-    document.querySelector('.add-fav-btn').onclick = () => handleAddToFavorites(contact);
-    document.querySelector('.add-emergency-btn').onclick = () => handleAddToEmergency(contact);
-    document.querySelector('.share-location-btn').onclick = () => handleShareLocation(contact);
-    document.querySelector('.block-btn').onclick = () => handleBlockContact(contact);
-    
-    // Afficher la vue détaillée
-    detailView.style.display = 'flex';
-    
-    // Gestionnaire pour le bouton retour
-    document.getElementById('backToListBtn').onclick = () => {
-        detailView.style.display = 'none';
+// Ajouter un nouveau contact
+function addContact() {
+    const newContact = {
+        id: generateId(),
+        name: $('#add-name').val().trim(),
+        phone: $('#add-phone').val().trim(),
+        email: $('#add-email').val().trim(),
+        address: $('#add-address').val().trim(),
+        photo: $('#profile-select').val(),
+        group: $('#add-group').val()
     };
+    
+    // Valider les données
+    if (!newContact.name || !newContact.phone) {
+        alert('Veuillez remplir au moins le nom et le numéro de téléphone.');
+        return;
+    }
+    
+    // Ajouter le contact à la liste
+    const contacts = getContacts();
+    contacts.push(newContact);
+    saveContacts(contacts);
+    
+    // Réinitialiser le formulaire
+    $('#add-form')[0].reset();
+    
+    // Revenir à la page d'accueil et rafraîchir la liste
+    $.mobile.changePage('#home');
+    loadContactList();
+    
+    // Afficher un message
+    showToast('Contact ajouté avec succès');
 }
 
-// Initialiser les gestionnaires d'événements
-function initEventListeners() {
-    // Bouton d'ajout de contact
-    document.getElementById('addContactBtn').addEventListener('click', () => {
-        document.getElementById('modalTitle').textContent = 'Ajouter un contact';
-        document.getElementById('contactId').value = '';
-        document.getElementById('contactForm').reset();
-        openModal('contactModal');
-    });
+// Mettre à jour un contact existant
+function updateContact() {
+    if (!currentContact) return;
     
-    // Fermeture des modals
-    document.getElementById('closeModal').addEventListener('click', () => {
-        closeModal('contactModal');
-    });
+    const updatedContact = {
+        id: currentContact.id,
+        name: $('#edit-name').val().trim(),
+        phone: $('#edit-phone').val().trim(),
+        email: $('#edit-email').val().trim(),
+        address: $('#edit-address').val().trim(),
+        photo: $('#edit-profile-select').val(),
+        group: $('#edit-group').val()
+    };
     
-    document.getElementById('closeDeleteModal').addEventListener('click', () => {
-        closeModal('deleteModal');
-    });
+    // Valider les données
+    if (!updatedContact.name || !updatedContact.phone) {
+        alert('Veuillez remplir au moins le nom et le numéro de téléphone.');
+        return;
+    }
     
-    document.getElementById('cancelBtn').addEventListener('click', () => {
-        closeModal('contactModal');
-    });
+    // Mettre à jour le contact dans la liste
+    const contacts = getContacts();
+    const index = contacts.findIndex(c => c.id === currentContact.id);
     
-    document.getElementById('cancelDeleteBtn').addEventListener('click', () => {
-        closeModal('deleteModal');
-    });
-    
-    // Soumission du formulaire de contact
-    document.getElementById('contactForm').addEventListener('submit', handleContactFormSubmit);
-    
-    // Confirmation de suppression
-    document.getElementById('confirmDeleteBtn').addEventListener('click', confirmDelete);
-    
-    // Recherche
-    document.getElementById('searchInput').addEventListener('input', handleSearch);
-    
-    // Onglets de navigation
-    document.querySelectorAll('.tab-button').forEach((tab, index) => {
-        tab.addEventListener('click', () => {
-            document.querySelectorAll('.tab-button').forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-            
-            // Changer de vue selon l'onglet
-            switch (index) {
-                case 0: // Favoris
-                    switchView('favorites');
-                    break;
-                case 1: // Récents
-                    switchView('recents');
-                    break;
-                case 2: // Contacts
-                    switchView('contacts');
-                    break;
-                case 3: // Clavier
-                    switchView('keypad');
-                    break;
-                case 4: // Messagerie
-                    switchView('voicemail');
-                    break;
-            }
-        });
-    });
-    
-    // Bouton retour
-    document.querySelector('.back-button').addEventListener('click', () => {
-        switchView('recents');
-    });
-    
-    // Bouton retour de la vue détaillée
-    document.getElementById('backToListBtn').addEventListener('click', () => {
-        document.getElementById('contactDetailView').style.display = 'none';
-    });
-}
-
-// Fonctions manquantes à implémenter
-
-// Générer l'index alphabétique
-function generateAlphabetIndex() {
-    const alphabetIndex = document.getElementById('alphabetIndex');
-    alphabetIndex.innerHTML = '';
-    
-    // Créer les lettres de A à Z
-    for (let i = 65; i <= 90; i++) {
-        const letter = String.fromCharCode(i);
-        const letterElement = document.createElement('div');
-        letterElement.className = 'letter';
-        letterElement.textContent = letter;
+    if (index !== -1) {
+        contacts[index] = updatedContact;
+        saveContacts(contacts);
         
-        // Ajouter l'événement pour faire défiler jusqu'à la section correspondante
-        letterElement.addEventListener('click', () => {
-            const dividers = document.querySelectorAll('.divider');
-            dividers.forEach(divider => {
-                if (divider.textContent.toLowerCase().startsWith(letter.toLowerCase())) {
-                    divider.scrollIntoView({ behavior: 'smooth' });
-                    return;
-                }
-            });
-        });
+        // Mettre à jour le contact actuel
+        currentContact = updatedContact;
         
-        alphabetIndex.appendChild(letterElement);
+        // Revenir à la page de détails et rafraîchir
+        $.mobile.changePage('#details-page');
+        
+        // Rafraîchir la liste des contacts
+        loadContactList();
+        
+        // Afficher un message
+        showToast('Contact mis à jour avec succès');
     }
 }
+
+// Confirmer et supprimer un contact
+function confirmAndDeleteContact() {
+    if (!currentContact) return;
+    
+    if (confirm(`Êtes-vous sûr de vouloir supprimer ${currentContact.name} ?`)) {
+        // Supprimer le contact
+        const contacts = getContacts();
+        const updatedContacts = contacts.filter(c => c.id !== currentContact.id);
+        saveContacts(updatedContacts);
+        
+        // Revenir à la page d'accueil et rafraîchir la liste
+        $.mobile.changePage('#home');
+        loadContactList();
+        
+        // Réinitialiser le contact actuel
+        currentContact = null;
+        
+        // Afficher un message
+        showToast('Contact supprimé avec succès');
+    }
+}
+
+// Pré-remplir le formulaire de modification
+function populateEditForm() {
+    if (!currentContact) return;
+    
+    $('#edit-name').val(currentContact.name);
+    $('#edit-phone').val(currentContact.phone);
+    $('#edit-email').val(currentContact.email || '');
+    $('#edit-address').val(currentContact.address || '');
+    $('#edit-profile-select').val(currentContact.photo || 'logo.png').selectmenu('refresh');
+    $('#edit-group').val(currentContact.group).selectmenu('refresh');
+    
+    // Mettre à jour la prévisualisation de la photo
+    updateProfilePreview('edit-profile-preview', currentContact.photo || 'logo.png');
+}
+
+// Mettre à jour la prévisualisation de la photo de profil
+function updateProfilePreview(previewId, photoName) {
+    $(`#${previewId}`).attr('src', `img/${photoName}`);
+}
+
+// Fonctions utilitaires
+function getContacts() {
+    const contactsJson = localStorage.getItem('contacts');
+    return contactsJson ? JSON.parse(contactsJson) : [];
+}
+
+// Fonctions utilitaires (suite)
+function saveContacts(contacts) {
+    localStorage.setItem('contacts', JSON.stringify(contacts));
+}
+
+function getContactById(id) {
+    const contacts = getContacts();
+    return contacts.find(contact => contact.id === id);
+}
+
+function generateId() {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+}
+
+// Afficher un message toast
+function showToast(message) {
+    // Créer l'élément toast s'il n'existe pas déjà
+    if ($('#toast').length === 0) {
+        $('body').append('<div id="toast" class="toast"></div>');
+        
+        // Ajouter le style pour le toast
+        $('<style>')
+            .prop('type', 'text/css')
+            .html(`
+                .toast {
+                    position: fixed;
+                    bottom: 80px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    background-color: rgba(0, 0, 0, 0.8);
+                    color: white;
+                    padding: 12px 20px;
+                    border-radius: 25px;
+                    z-index: 9999;
+                    font-size: 16px;
+                    opacity: 0;
+                    transition: opacity 0.3s ease-in-out;
+                    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+                    text-align: center;
+                    min-width: 200px;
+                    max-width: 80%;
+                }
+                .toast.visible {
+                    opacity: 1;
+                }
+            `)
+            .appendTo('head');
+    }
+    
+    // Afficher le toast
+    const $toast = $('#toast');
+    $toast.text(message).addClass('visible');
+    
+    // Masquer le toast après un délai
+    setTimeout(() => {
+        $toast.removeClass('visible');
+    }, 3000);
+}
+
+// Fonction pour afficher et masquer les groupes de lettres dans la liste de contacts
+function organizeContactsByInitial() {
+    const contacts = getContacts();
+    const $contactList = $('#contact-list');
+    
+    // Vider la liste
+    $contactList.empty();
+    
+    if (contacts.length === 0) {
+        $contactList.html('<li class="empty-list"><p>Aucun contact trouvé. Ajoutez votre premier contact!</p></li>');
+        return;
+    }
+    
+    // Trier les contacts par nom
+    contacts.sort((a, b) => a.name.localeCompare(b.name));
+    
+    // Regrouper les contacts par initiale
+    const groupedContacts = {};
+    
+    contacts.forEach(contact => {
+        const initial = contact.name.charAt(0).toUpperCase();
+        if (!groupedContacts[initial]) {
+            groupedContacts[initial] = [];
+        }
+        groupedContacts[initial].push(contact);
+    });
+    
+    // Ajouter chaque groupe à la liste
+    Object.keys(groupedContacts).sort().forEach(initial => {
+        // Ajouter l'en-tête de groupe
+        $contactList.append(`
+            <li data-role="list-divider" class="ui-li-divider">${initial}</li>
+        `);
+        
+        // Ajouter les contacts de ce groupe
+        groupedContacts[initial].forEach(contact => {
+            const $item = $(`
+                <li>
+                    <a href="#details-page" class="contact-item" data-id="${contact.id}">
+                        <img src="img/${contact.photo || 'logo.png'}" alt="${contact.name}" class="contact-avatar">
+                        <div class="contact-info">
+                            <h2>${contact.name}</h2>
+                            <p>${contact.phone}</p>
+                            <span class="contact-group ${contact.group}">${contact.group}</span>
+                        </div>
+                    </a>
+                </li>
+            `);
+            
+            $contactList.append($item);
+        });
+    });
+    
+    // Rafraîchir la liste pour appliquer le style jQuery Mobile
+    if ($contactList.hasClass('ui-listview')) {
+        $contactList.listview('refresh');
+    }
+    
+    // Gestionnaire d'événements pour la sélection d'un contact
+    $('.contact-item').on('click', function() {
+        const contactId = $(this).data('id');
+        currentContact = getContactById(contactId);
+    });
+}
+
+// Fonction pour exporter les contacts (vCard format)
+function exportContacts() {
+    const contacts = getContacts();
+    let vcardContent = '';
+    
+    contacts.forEach(contact => {
+        vcardContent += 'BEGIN:VCARD\n';
+        vcardContent += 'VERSION:3.0\n';
+        vcardContent += `N:${contact.name};;;\n`;
+        vcardContent += `FN:${contact.name}\n`;
+        vcardContent += `TEL;TYPE=CELL:${contact.phone}\n`;
+        
+        if (contact.email) {
+            vcardContent += `EMAIL:${contact.email}\n`;
+        }
+        
+        if (contact.address) {
+            vcardContent += `ADR:;;${contact.address};;;;\n`;
+        }
+        
+        vcardContent += `CATEGORIES:${contact.group}\n`;
+        vcardContent += 'END:VCARD\n';
+    });
+    
+    // Créer un lien de téléchargement pour le fichier vCard
+    const blob = new Blob([vcardContent], { type: 'text/vcard' });
+    const url = URL.createObjectURL(blob);
+    
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'contacts.vcf';
+    document.body.appendChild(a);
+    a.click();
+    
+    // Nettoyer
+    setTimeout(() => {
+        document.body.removeChild(a);
+        window.URL.revokeObjectURL(url);
+    }, 0);
+    
+    showToast('Contacts exportés avec succès');
+}
+
+// Ajouter un menu d'options pour les fonctionnalités supplémentaires
+function setupOptionsMenu() {
+    // Ajouter le bouton de menu si non existant
+    if ($('#options-button').length === 0) {
+        const $optionsButton = $(`
+            <a href="#" id="options-button" class="ui-btn ui-btn-left ui-icon-bars ui-btn-icon-notext ui-corner-all">Options</a>
+        `);
+        
+        // Ajouter au header de la page d'accueil
+        $('#home [data-role="header"]').prepend($optionsButton);
+        
+        // Créer le menu popup
+        $('body').append(`
+            <div data-role="popup" id="options-menu" data-theme="a">
+                <ul data-role="listview" data-inset="true" style="min-width:210px;">
+                    <li data-role="list-divider">Options</li>
+                    <li><a href="#" id="export-contacts">Exporter les contacts</a></li>
+                    <li><a href="#" id="group-by-initial">Grouper par initiale</a></li>
+                    <li><a href="#" id="sort-by-group">Trier par groupe</a></li>
+                </ul>
+            </div>
+        `);
+        
+        // Initialiser le popup
+        $('#options-menu').popup();
+        
+        // Associer le bouton au popup
+        $('#options-button').on('click', function() {
+            $('#options-menu').popup('open', { positionTo: 'window' });
+        });
+        
+        // Gestionnaires d'événements pour les options
+        $('#export-contacts').on('click', function() {
+            $('#options-menu').popup('close');
+            exportContacts();
+        });
+        
+        $('#group-by-initial').on('click', function() {
+            $('#options-menu').popup('close');
+            organizeContactsByInitial();
+        });
+        
+        $('#sort-by-group').on('click', function() {
+            $('#options-menu').popup('close');
+            sortContactsByGroup();
+        });
+    }
+}
+
+// Trier les contacts par groupe
+function sortContactsByGroup() {
+    const contacts = getContacts();
+    const $contactList = $('#contact-list');
+    
+    // Vider la liste
+    $contactList.empty();
+    
+    if (contacts.length === 0) {
+        $contactList.html('<li class="empty-list"><p>Aucun contact trouvé. Ajoutez votre premier contact!</p></li>');
+        return;
+    }
+    
+    // Trier les contacts par groupe puis par nom
+    contacts.sort((a, b) => {
+        if (a.group === b.group) {
+            return a.name.localeCompare(b.name);
+        }
+        return a.group.localeCompare(b.group);
+    });
+    
+    // Regrouper les contacts par groupe
+    const groupedContacts = {};
+    
+    contacts.forEach(contact => {
+        if (!groupedContacts[contact.group]) {
+            groupedContacts[contact.group] = [];
+        }
+        groupedContacts[contact.group].push(contact);
+    });
+    
+    // Définir l'ordre des groupes
+    const groupOrder = ['famille', 'amis', 'travail', 'autre'];
+    
+    // Ajouter chaque groupe à la liste
+    groupOrder.forEach(group => {
+        if (groupedContacts[group] && groupedContacts[group].length > 0) {
+            // Formater le nom du groupe pour l'affichage
+            const groupName = group.charAt(0).toUpperCase() + group.slice(1);
+            
+            // Ajouter l'en-tête de groupe
+            $contactList.append(`
+                <li data-role="list-divider" class="ui-li-divider ${group}-header">${groupName}</li>
+            `);
+            
+            // Ajouter les contacts de ce groupe
+            groupedContacts[group].forEach(contact => {
+                const $item = $(`
+                    <li>
+                        <a href="#details-page" class="contact-item" data-id="${contact.id}">
+                            <img src="img/${contact.photo || 'logo.png'}" alt="${contact.name}" class="contact-avatar">
+                            <div class="contact-info">
+                                <h2>${contact.name}</h2>
+                                <p>${contact.phone}</p>
+                            </div>
+                        </a>
+                    </li>
+                `);
+                
+                $contactList.append($item);
+            });
+        }
+    });
+    
+    // Rafraîchir la liste pour appliquer le style jQuery Mobile
+    if ($contactList.hasClass('ui-listview')) {
+        $contactList.listview('refresh');
+    }
+    
+    // Ajouter un style pour les en-têtes de groupe
+    $('<style>')
+        .prop('type', 'text/css')
+        .html(`
+            .famille-header {
+                background-color: #ffebee !important;
+                color: #e53935 !important;
+                font-weight: bold !important;
+            }
+            .amis-header {
+                background-color: #e0f7fa !important;
+                color: #00acc1 !important;
+                font-weight: bold !important;
+            }
+            .travail-header {
+                background-color: #e8f5e9 !important;
+                color: #43a047 !important;
+                font-weight: bold !important;
+            }
+            .autre-header {
+                background-color: #f5f5f5 !important;
+                color: #757575 !important;
+                font-weight: bold !important;
+            }
+        `)
+        .appendTo('head');
+    
+    // Gestionnaire d'événements pour la sélection d'un contact
+    $('.contact-item').on('click', function() {
+        const contactId = $(this).data('id');
+        currentContact = getContactById(contactId);
+    });
+}
+
+// Appeler setupOptionsMenu lors du chargement de la page d'accueil
+$(document).on('pageshow', '#home', function() {
+    setupOptionsMenu();
+});
