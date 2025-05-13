@@ -1,57 +1,17 @@
-document.addEventListener('DOMContentLoaded', function() {
-    // Création du formulaire HTML
-    document.body.innerHTML = `
-        <div class="container">
-            <h1>Calculateur d'IMC</h1>
-            <div class="form-group">
-                <label for="poids">Poids (kg):</label>
-                <input type="number" id="poids" class="form-control" step="0.1" required>
-            </div>
-            <div class="form-group">
-                <label for="taille">Taille (m):</label>
-                <input type="number" id="taille" class="form-control" step="0.01" required>
-            </div>
-            <button onclick="calculerIMC()" class="btn-calcul">Calculer</button>
-            <div id="resultat"></div>
-        </div>
-    `;
+document.addEventListener('deviceready', onDeviceReady, false);
 
-    // Ajout du style CSS
-    const style = document.createElement('style');
-    style.textContent = `
-        .container {
-            max-width: 500px;
-            margin: 20px auto;
-            padding: 20px;
-            font-family: Arial, sans-serif;
-        }
-        .form-group {
-            margin-bottom: 15px;
-        }
-        .form-control {
-            width: 100%;
-            padding: 8px;
-            margin-top: 5px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .btn-calcul {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        #resultat {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 4px;
-        }
-    `;
-    document.head.appendChild(style);
+// Fallback pour les tests dans un navigateur
+document.addEventListener('DOMContentLoaded', function() {
+    if (typeof cordova === 'undefined') {
+        onDeviceReady();
+    }
 });
+
+function onDeviceReady() {
+    console.log('Application IMC prête!');
+    // Attacher l'événement au bouton
+    document.getElementById('calculButton').addEventListener('click', calculerIMC);
+}
 
 function calculerIMC() {
     const poids = parseFloat(document.getElementById('poids').value);
