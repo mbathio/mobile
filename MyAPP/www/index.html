@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
@@ -10,133 +9,168 @@
     <title>Contactel</title>
 </head>
 <body>
-    <div class="app">
-        <!-- Section principale avec liste de contacts -->
-        <div id="main-page" class="page active">
-            <header>
-                <h1>Contacts</h1>
-                <div class="header-actions">
-                    <button id="search-toggle"><i class="fas fa-search"></i></button>
-                    <button id="add-contact-btn"><i class="fas fa-plus"></i></button>
-                </div>
-            </header>
-            
-            <div id="search-bar" class="hidden">
-                <input type="text" id="search-input" placeholder="Rechercher...">
-                <button id="search-close"><i class="fas fa-times"></i></button>
-            </div>
-            
-            <div id="alphabet-nav" class="alphabet-index">
-                <!-- Généré dynamiquement en JS -->
-            </div>
-            
-            <div class="contact-list-container">
-                <ul id="contact-list" class="contact-list">
-                    <!-- Les contacts seront générés dynamiquement -->
-                </ul>
-            </div>
+    <div class="status-bar">
+        <div class="status-bar-time">06:38</div>
+        <div class="status-bar-icons">
+            <span class="signal-icon"></span>
+            <span class="wifi-icon"></span>
+            <span class="battery-icon"></span>
         </div>
-        
-        <!-- Page de détails du contact -->
-        <div id="contact-detail" class="page">
-            <header>
-                <button class="back-btn"><i class="fas fa-chevron-left"></i></button>
-                <h2>Détails du contact</h2>
-                <button id="edit-contact-btn"><i class="fas fa-edit"></i></button>
-            </header>
-            
-            <div id="contact-info" class="contact-detail-container">
-                <!-- Les détails du contact seront générés dynamiquement -->
-            </div>
-            
-            <div class="contact-actions">
-                <button id="call-btn" class="action-btn">
-                    <i class="fas fa-phone"></i>
-                    <span>Appeler</span>
-                </button>
-                <button id="message-btn" class="action-btn">
-                    <i class="fas fa-comment"></i>
-                    <span>Message</span>
-                </button>
-                <button id="video-btn" class="action-btn">
-                    <i class="fas fa-video"></i>
-                    <span>Vidéo</span>
-                </button>
-                <button id="email-btn" class="action-btn">
-                    <i class="fas fa-envelope"></i>
-                    <span>Email</span>
+    </div>
+    
+    <header>
+        <div class="nav-bar">
+            <button class="back-button"><i class="fas fa-chevron-left"></i> Récents</button>
+            <div class="actions-container">
+                <button id="addContactBtn" class="add-button">
+                    <i class="fas fa-plus"></i>
                 </button>
             </div>
         </div>
-        
-        <!-- Page d'ajout/modification de contact -->
-        <div id="edit-page" class="page">
-            <header>
-                <button class="back-btn"><i class="fas fa-times"></i></button>
-                <h2 id="edit-title">Nouveau contact</h2>
-                <button id="save-contact-btn">Enregistrer</button>
-            </header>
-            
-            <form id="contact-form">
-                <input type="hidden" id="contact-id">
-                
-                <div class="form-avatar">
-                    <div class="avatar-placeholder">
-                        <i class="fas fa-user"></i>
-                    </div>
-                    <button type="button" id="add-photo">Ajouter photo</button>
-                </div>
-                
+        <div class="search-bar">
+            <div class="search-container">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" placeholder="Rechercher">
+            </div>
+        </div>
+    </header>
+    
+    <div class="alphabet-index" id="alphabetIndex">
+        <!-- Les lettres seront générées dynamiquement -->
+    </div>
+    
+    <div class="tabs-container">
+        <button class="tab-button">
+            <i class="fas fa-star"></i>
+            <span>Favoris</span>
+        </button>
+        <button class="tab-button active">
+            <i class="fas fa-clock"></i>
+            <span>Récents</span>
+        </button>
+        <button class="tab-button">
+            <i class="fas fa-user"></i>
+            <span>Contacts</span>
+        </button>
+        <button class="tab-button">
+            <i class="fas fa-th"></i>
+            <span>Clavier</span>
+        </button>
+        <button class="tab-button">
+            <i class="fas fa-voicemail"></i>
+            <span>Messagerie</span>
+        </button>
+    </div>
+    
+    <ul class="contact-list" id="contactList">
+        <!-- Les contacts seront générés dynamiquement -->
+    </ul>
+    
+    <!-- Modal pour ajouter/modifier un contact -->
+    <div id="contactModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Ajouter un contact</h2>
+                <span class="close-modal" id="closeModal">&times;</span>
+            </div>
+            <form id="contactForm">
+                <input type="hidden" id="contactId">
                 <div class="form-group">
                     <label for="nom">Nom</label>
-                    <input type="text" id="nom" placeholder="Nom">
+                    <input type="text" id="nom" placeholder="Nom du contact" required>
                 </div>
-                
                 <div class="form-group">
                     <label for="prenom">Prénom</label>
-                    <input type="text" id="prenom" placeholder="Prénom">
+                    <input type="text" id="prenom" placeholder="Prénom du contact" required>
                 </div>
-                
                 <div class="form-group">
                     <label for="telephone">Téléphone</label>
-                    <input type="tel" id="telephone" placeholder="Téléphone">
+                    <input type="tel" id="telephone" placeholder="Numéro de téléphone" required>
                 </div>
-                
                 <div class="form-group">
                     <label for="email">Email</label>
-                    <input type="email" id="email" placeholder="Email">
+                    <input type="email" id="email" placeholder="Adresse email">
                 </div>
-                
-                <div class="form-group">
-                    <label for="adresse">Adresse</label>
-                    <input type="text" id="adresse" placeholder="Adresse">
-                </div>
-                
-                <div class="form-group">
-                    <label for="groupe">Groupe</label>
-                    <select id="groupe">
-                        <option value="aucun">Aucun</option>
-                        <option value="famille">Famille</option>
-                        <option value="amis">Amis</option>
-                        <option value="travail">Travail</option>
-                    </select>
-                </div>
-                
-                <div class="delete-section">
-                    <button type="button" id="delete-contact-btn">Supprimer le contact</button>
+                <div class="form-actions">
+                    <button type="button" id="cancelBtn" class="btn-cancel">Annuler</button>
+                    <button type="submit" class="btn-save">Enregistrer</button>
                 </div>
             </form>
         </div>
-        
-        <!-- Confirmation de suppression -->
-        <div id="delete-modal" class="modal">
-            <div class="modal-content">
-                <h3>Supprimer le contact</h3>
-                <p>Êtes-vous sûr de vouloir supprimer ce contact ?</p>
-                <div class="modal-actions">
-                    <button id="cancel-delete">Annuler</button>
-                    <button id="confirm-delete">Supprimer</button>
+    </div>
+    
+    <!-- Modal de confirmation de suppression -->
+    <div id="deleteModal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Confirmation</h2>
+                <span class="close-modal" id="closeDeleteModal">&times;</span>
+            </div>
+            <p>Êtes-vous sûr de vouloir supprimer ce contact ?</p>
+            <div class="form-actions">
+                <button type="button" id="cancelDeleteBtn" class="btn-cancel">Annuler</button>
+                <button type="button" id="confirmDeleteBtn" class="btn-save">Supprimer</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Vue détaillée d'un contact (style iPhone) -->
+    <div id="contactDetailView" class="contact-detail-view">
+        <div class="contact-detail-header">
+            <button id="backToListBtn" class="back-button"><i class="fas fa-chevron-left"></i> Contacts</button>
+        </div>
+        <div class="contact-detail-info">
+            <div class="contact-avatar">
+                <i class="fas fa-user-circle"></i>
+            </div>
+            <h2 id="contactDetailName"></h2>
+            <div class="contact-detail-actions">
+                <button class="action-circle message-btn">
+                    <i class="fas fa-comment"></i>
+                    <span>Message</span>
+                </button>
+                <button class="action-circle call-btn">
+                    <i class="fas fa-phone"></i>
+                    <span>Appel</span>
+                </button>
+                <button class="action-circle video-btn">
+                    <i class="fas fa-video"></i>
+                    <span>Vidéo</span>
+                </button>
+                <button class="action-circle mail-btn">
+                    <i class="fas fa-envelope"></i>
+                    <span>Mail</span>
+                </button>
+            </div>
+        </div>
+        <div class="contact-detail-data">
+            <div class="data-section">
+                <div class="data-item" id="phoneNumberDetail">
+                    <div class="data-label">Mobile</div>
+                    <div class="data-value"></div>
                 </div>
+            </div>
+            <div class="contact-actions-list">
+                <button class="contact-action-btn share-btn">
+                    <i class="fas fa-share-alt"></i>
+                    <span>Partager le contact</span>
+                </button>
+                <button class="contact-action-btn add-fav-btn">
+                    <i class="fas fa-plus"></i>
+                    <span>Ajouter aux favoris</span>
+                </button>
+                <button class="contact-action-btn add-emergency-btn">
+                    <i class="fas fa-star"></i>
+                    <span>Ajouter aux contacts d'urgence</span>
+                </button>
+                <button class="contact-action-btn share-location-btn">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>Partager ma position</span>
+                </button>
+                <button class="contact-action-btn block-btn">
+                    <i class="fas fa-ban"></i>
+                    <span>Bloquer ce contact</span>
+                </button>
             </div>
         </div>
     </div>
